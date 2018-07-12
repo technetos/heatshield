@@ -1,0 +1,17 @@
+[package]
+name = "heatsheild-rs"
+version = "0.1.0"
+authors = ["technetos <mrgould93@gmail.com>"]
+
+[dependencies]
+serde_derive = "1.0.27"
+serde = "1.0"
+rocket = "0.3.14"
+rocket_codegen = "0.3.12"
+diesel = { version = "<= 1.2.0", features = ["postgres", "chrono"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["json"]
