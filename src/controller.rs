@@ -5,6 +5,8 @@ use diesel::{
 };
 
 pub trait ControllerLifecycle {
+    //fn emit(&self, metadata: EventMetadata) {};
+
     fn before_create(&mut self) {}
     fn create(&mut self) {}
     fn after_create(&mut self) {}
@@ -14,7 +16,7 @@ pub trait ControllerLifecycle {
     fn after_get_all(&mut self) {}
 
     fn before_get_one(&mut self) {}
-    fn get_one(&mut self) {}
+    fn get_one(&mut self, id: i32) {}
     fn after_get_one(&mut self) {}
 }
 

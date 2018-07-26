@@ -11,25 +11,32 @@ pub struct AccountController {
 }
 
 impl ControllerLifecycle for AccountController {
-    fn before_create(&mut self) {}
-
-    fn create(&mut self) {
-        // define account controller specific behavior for creating an account model
-        // then call _create to actually create the model
+    fn before_create(&mut self) {
         let Account {
             ref username,
             ref password,
             ref email,
             ..
         } = self.model.account;
+    }
 
+    fn create(&mut self) {
+        // define account controller specific behavior for creating an account model
+        // then call _create to actually create the model
         match self._create(&self.model.account) {
-            Ok(model) => {}
+            Ok(model) => self.model = model,
             Err(e) => {}
         }
     }
 
-    fn after_create(&mut self) {}
+    fn get_one(&mut self, id: i32) {
+        self.model.id = id;
+
+        match self._get_one(&|account| Box::new(accounts::id.eq(account.id))) {
+            Ok(model) => self.model = model,
+            Err(e) => {}
+        }
+    }
 }
 
 impl AccountController {
@@ -71,9 +78,9 @@ mod tests {
             model: AccountWithId {
                 id: 0,
                 account: Account {
-                    username: None,
-                    password: None,
-                    email: None,
+                    username: Some("foo".to_owned()),
+                    password: Some("foo".to_owned()),
+                    email: Some("foo".to_owned()),
                     enabled: None,
                 },
                 verification_id: None,
@@ -81,5 +88,6 @@ mod tests {
         };
 
         account_controller.create();
+        account_controller.get_one(1);
     }
 }
