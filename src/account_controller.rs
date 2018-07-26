@@ -1,5 +1,8 @@
-use controller::{ResourceController, ControllerLifecycle};
-use diesel::{self, insert_into, prelude::*};
+use controller::{ControllerLifecycle, ResourceController};
+use diesel::{
+    self, expression::BoxableExpression, insert_into, pg::Pg, prelude::*, result::Error,
+    sql_types::Bool,
+};
 use model::{Account, AccountWithId};
 use schema::accounts;
 
@@ -8,13 +11,11 @@ pub struct AccountController {
 }
 
 impl ControllerLifecycle for AccountController {
-    fn before_create(&mut self) {
-
-    }
+    fn before_create(&mut self) {}
 
     fn create(&mut self) {
         // define account controller specific behavior for creating an account model
-        // then call create_resource to actually create the model
+        // then call _create to actually create the model
         let Account {
             ref username,
             ref password,
@@ -22,15 +23,13 @@ impl ControllerLifecycle for AccountController {
             ..
         } = self.model.account;
 
-        match self.create_resource(&self.model.account) {
+        match self._create(&self.model.account) {
             Ok(model) => {}
             Err(e) => {}
         }
     }
 
-    fn after_create(&mut self) {
-
-    }
+    fn after_create(&mut self) {}
 }
 
 impl AccountController {
@@ -39,18 +38,25 @@ impl AccountController {
 
 use db::establish_connection as connection;
 
+type Expr = Box<BoxableExpression<accounts::table, Pg, SqlType = Bool>>;
+
 impl ResourceController<Account, AccountWithId, accounts::table, accounts::SqlType>
     for AccountController
 {
-    fn create_resource(&self, model: &Account) -> Result<AccountWithId, diesel::result::Error> {
-        use schema::accounts::dsl::*;
-        Ok(insert_into(accounts)
+    fn _create(&self, model: &Account) -> Result<AccountWithId, Error> {
+        Ok(insert_into(accounts::table)
             .values(model)
             .get_result(&connection())?)
     }
 
-    fn select_resource(&self, model: &AccountWithId) -> Result<(), diesel::result::Error> {
+    fn _get_one(&self, by: &Fn(&AccountWithId) -> Expr) -> Result<(), Error> {
         Ok(())
+    }
+
+    fn _get_all(&self, by: &Fn(&AccountWithId) -> Expr) -> Result<Vec<AccountWithId>, Error> {
+        Ok(accounts::table
+            .filter(by(&self.model))
+            .get_results::<AccountWithId>(&connection())?)
     }
 }
 
