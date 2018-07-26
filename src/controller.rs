@@ -29,7 +29,7 @@ where
     fn _get_one(
         &self,
         by: &Fn(&ModelWithId) -> Box<BoxableExpression<DBTable, Pg, SqlType = Bool>>,
-    ) -> Result<(), Error>;
+    ) -> Result<ModelWithId, Error>;
 
     fn _get_all(
         &self,

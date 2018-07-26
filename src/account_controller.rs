@@ -49,8 +49,10 @@ impl ResourceController<Account, AccountWithId, accounts::table, accounts::SqlTy
             .get_result(&connection())?)
     }
 
-    fn _get_one(&self, by: &Fn(&AccountWithId) -> Expr) -> Result<(), Error> {
-        Ok(())
+    fn _get_one(&self, by: &Fn(&AccountWithId) -> Expr) -> Result<AccountWithId, Error> {
+        Ok(accounts::table
+            .filter(by(&self.model))
+            .get_result::<AccountWithId>(&connection())?)
     }
 
     fn _get_all(&self, by: &Fn(&AccountWithId) -> Expr) -> Result<Vec<AccountWithId>, Error> {
