@@ -4,20 +4,23 @@ use diesel::{
     sql_types::Bool,
 };
 
+pub enum ControllerKind {
+    Simple(Box<ControllerLifecycle>),
+    Resource(Box<ResourceControllerLifecycle>),
+}
+
 pub trait ControllerLifecycle {
-    //fn emit(&self, metadata: EventMetadata) {};
+    fn before(&self) {}
+    fn execute(&self) {}
+    fn after(&self) {}
+}
 
-    fn before_create(&mut self) {}
-    fn create(&mut self) {}
-    fn after_create(&mut self) {}
-
-    fn before_get_all(&mut self) {}
+pub trait ResourceControllerLifecycle {
+    fn _create(&mut self) -> Result<(), ()> {
+        Ok(())
+    }
     fn get_all(&mut self) {}
-    fn after_get_all(&mut self) {}
-
-    fn before_get_one(&mut self) {}
-    fn get_one(&mut self, id: i32) {}
-    fn after_get_one(&mut self) {}
+    fn _get_one(&mut self) {}
 }
 
 pub trait ResourceController<Model, ModelWithId, DBTable, SQLType>
@@ -26,14 +29,14 @@ where
     ModelWithId: Queryable<SQLType, Pg>,
     DBTable: diesel::Table,
 {
-    fn _create(&self, model: &Model) -> Result<ModelWithId, Error>;
+    fn __create(&self, model: &Model) -> Result<ModelWithId, Error>;
 
-    fn _get_one(
+    fn __get_one(
         &self,
         by: &Fn(&ModelWithId) -> Box<BoxableExpression<DBTable, Pg, SqlType = Bool>>,
     ) -> Result<ModelWithId, Error>;
 
-    fn _get_all(
+    fn __get_all(
         &self,
         by: &Fn(&ModelWithId) -> Box<BoxableExpression<DBTable, Pg, SqlType = Bool>>,
     ) -> Result<Vec<ModelWithId>, Error>;

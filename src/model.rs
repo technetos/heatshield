@@ -26,7 +26,7 @@ pub struct Client {
     pub enabled: Option<bool>,
 }
 
-#[derive(FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
 #[belongs_to(Verification)]
 #[table_name = "accounts"]
 pub struct AccountWithId {
@@ -35,7 +35,7 @@ pub struct AccountWithId {
     pub verification_id: Option<i32>,
 }
 
-#[derive(FromSqlRow, Insertable, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, FromSqlRow, Insertable, Debug, PartialEq)]
 #[table_name = "accounts"]
 pub struct Account {
     pub username: Option<String>,
