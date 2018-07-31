@@ -35,7 +35,7 @@ pub struct AccountWithId {
     pub verification_id: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize, FromSqlRow, Insertable, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, FromSqlRow, Insertable, AsChangeset, Debug, PartialEq)]
 #[table_name = "accounts"]
 pub struct Account {
     pub username: Option<String>,
