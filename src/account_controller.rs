@@ -1,4 +1,4 @@
-use controller::{Expr, ResourceController};
+use controller::{Expr, ResourceController, ResourceTable, ResourceSql};
 use diesel::{insert_into, prelude::*, result::Error, update};
 use failure;
 use model::{Account, AccountWithId};
@@ -42,13 +42,19 @@ impl Action for AccountController {
     //    fn delete(&mut self, model: Json<ModelWithId>) -> bool {}
 }
 
+impl ResourceTable for AccountController {
+  type DBTable = accounts::table;
+}
+
+impl ResourceSql for AccountController {
+  type SQLType = accounts::SqlType;
+}
+
 use db::establish_connection as connection;
 
 impl ResourceController for AccountController {
     type Model = Account;
     type ModelWithId = AccountWithId;
-    type DBTable = accounts::table;
-    type SQLType = accounts::SqlType;
 
     fn _create(&self, model: &Account) -> Result<AccountWithId, Error> {
         Ok(insert_into(accounts::table)

@@ -3,11 +3,17 @@ use diesel::{
     self, expression::BoxableExpression, pg::Pg, prelude::*, result::Error, sql_types::Bool,
 };
 
+pub trait ResourceTable {
+  type DBTable: diesel::Table;
+}
+
+pub trait ResourceSql {
+  type SQLType;
+}
+
 pub type Expr<T> = Box<BoxableExpression<T, Pg, SqlType = Bool>>;
 
-pub trait ResourceController {
-    type SQLType;
-    type DBTable: diesel::Table;
+pub trait ResourceController where Self: ResourceTable + ResourceSql {
     type Model: Insertable<Self::DBTable>;
     type ModelWithId: Queryable<Self::SQLType, Pg>;
 
