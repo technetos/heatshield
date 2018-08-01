@@ -1,46 +1,41 @@
-use controller::ResourceController;
-use diesel::{
-    expression::BoxableExpression, insert_into, pg::Pg, prelude::*, result::Error, sql_types::Bool,
-    update,
-};
+use controller::{Expr, ResourceController};
+use diesel::{insert_into, prelude::*, result::Error, update};
 use failure;
 use model::{Account, AccountWithId};
 use rocket_contrib::Json;
 use router::Action;
 use schema::accounts;
 
+#[get("/accounts/<id>")]
+pub fn account(id: usize) -> Json<AccountWithId> {
+    AccountController.get_one(id as i32).unwrap()
+}
+
 pub struct AccountController;
 
-impl<'a> Action<'a, Account, AccountWithId, accounts::table, accounts::SqlType>
-    for AccountController
-{
-    fn create(&mut self, model: Json<Account>) -> Result<Json<AccountWithId>, failure::Error> {
-        let account_model: Account = model.into_inner();
+impl Action for AccountController {
+    fn create(&self, json: Json<Account>) -> Result<Json<AccountWithId>, failure::Error> {
+        let model: Account = json.into_inner();
 
-        match self._create(&account_model) {
+        match self._create(&model) {
             Ok(model) => Ok(Json(model)),
             Err(e) => panic!(),
         }
     }
 
-    fn get_one(&mut self, id: i32) -> Result<Json<AccountWithId>, failure::Error> {
-        match self._get_one(&|| Box::new(accounts::id.eq(id))) {
+    fn get_one(&self, id: i32) -> Result<Json<AccountWithId>, failure::Error> {
+        match self._get_one(Box::new(accounts::id.eq(id))) {
             Ok(model) => Ok(Json(model)),
             Err(e) => panic!(),
         }
     }
 
-    fn update(
-        &mut self,
-        model: Json<AccountWithId>,
-    ) -> Result<Json<AccountWithId>, failure::Error> {
-        let account_model: AccountWithId = model.into_inner();
+    fn update(&self, json: Json<AccountWithId>) -> Result<Json<AccountWithId>, failure::Error> {
+        let model: AccountWithId = json.into_inner();
 
-        match self._update(&account_model.account, &|| {
-            Box::new(accounts::id.eq(account_model.id))
-        }) {
+        match self._update(&model.account, Box::new(accounts::id.eq(model.id))) {
             Ok(model) => Ok(Json(model)),
-            Err(e) => panic!(),
+            Err(e) => panic!(e),
         }
     }
 
@@ -49,32 +44,33 @@ impl<'a> Action<'a, Account, AccountWithId, accounts::table, accounts::SqlType>
 
 use db::establish_connection as connection;
 
-type Expr = Box<BoxableExpression<accounts::table, Pg, SqlType = Bool>>;
+impl ResourceController for AccountController {
+    type Model = Account;
+    type ModelWithId = AccountWithId;
+    type DBTable = accounts::table;
+    type SQLType = accounts::SqlType;
 
-impl ResourceController<Account, AccountWithId, accounts::table, accounts::SqlType>
-    for AccountController
-{
     fn _create(&self, model: &Account) -> Result<AccountWithId, Error> {
         Ok(insert_into(accounts::table)
             .values(model)
             .get_result(&connection())?)
     }
 
-    fn _get_one(&self, by: &Fn() -> Expr) -> Result<AccountWithId, Error> {
+    fn _get_one(&self, by: Expr<accounts::table>) -> Result<AccountWithId, Error> {
         Ok(accounts::table
-            .filter(by())
+            .filter(by)
             .get_result::<AccountWithId>(&connection())?)
     }
 
-    fn _get_all(&self, by: &Fn() -> Expr) -> Result<Vec<AccountWithId>, Error> {
+    fn _get_all(&self, by: Expr<accounts::table>) -> Result<Vec<AccountWithId>, Error> {
         Ok(accounts::table
-            .filter(by())
+            .filter(by)
             .get_results::<AccountWithId>(&connection())?)
     }
 
-    fn _update(&self, model: &Account, by: &Fn() -> Expr) -> Result<AccountWithId, Error> {
+    fn _update(&self, model: &Account, by: Expr<accounts::table>) -> Result<AccountWithId, Error> {
         Ok(update(accounts::table)
-            .filter(by())
+            .filter(by)
             .set(model)
             .get_result::<AccountWithId>(&connection())?)
     }
@@ -84,5 +80,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test() {}
+    fn test() {
+      AccountController._create(&Account {
+        username: Some("bob".to_string()),
+        password: Some("pass".to_string()),
+        email: Some("email@domain.ext".to_string()),
+        enabled: None,
+      });
+    }
 }
