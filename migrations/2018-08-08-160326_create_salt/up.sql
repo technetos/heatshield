@@ -1,0 +1,4 @@
+CREATE TABLE salts (
+  id SERIAL PRIMARY KEY NOT NULL,
+  salt TEXT UNIQUE
+);
