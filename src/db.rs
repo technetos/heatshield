@@ -19,16 +19,6 @@ pub fn establish_connection() -> PgConnection {
     PgConnection::establish(&env_var[..]).unwrap()
 }
 
-fn gen_salt() -> String {
-    let mut v = [0u8; CREDENTIAL_LEN];
-    let _ = SystemRandom.fill(&mut v);
-    data_encoding::HEXUPPER.encode(&v[..])
-}
-
-fn add_salt_to_db<'s>(salt_string: &'s str) {
-  SaltController.create(&Salt { salt: Some(salt_string.to_string()) });
-}
-
 fn salt_component() -> Result<String, diesel::result::Error> {
   Ok(SaltController.get_one(Box::new(schema::salts::id.eq(1)))?.salt.salt.unwrap().to_string())
 }

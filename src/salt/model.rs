@@ -32,3 +32,4 @@ impl Queryable<salts::SqlType, diesel::pg::Pg> for SaltWithId {
         }
     }
 }
+
