@@ -4,11 +4,11 @@
 pub const BASEPATH: &'static str = "/heatsheild/v1";
 
 pub mod account;
-pub mod salt;
 pub mod controller;
 mod db;
 pub mod model;
 mod policy;
+pub mod salt;
 mod sanitize;
 mod schema;
 mod validate;

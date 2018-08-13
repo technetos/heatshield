@@ -1,6 +1,6 @@
-use salt::model::{SaltWithId, Salt};
 use controller::{Expr, Resource, ResourceController, ResourceSql, ResourceTable, ResourceWithId};
 use diesel::{insert_into, prelude::*, result::Error, update};
+use salt::model::{Salt, SaltWithId};
 use schema::salts;
 
 pub struct SaltController;
@@ -48,20 +48,4 @@ impl ResourceController for SaltController {
             .set(model)
             .get_result::<SaltWithId>(&connection())?)
     }
-}
-
-use ring::{digest, pbkdf2};
-use ring::rand::{SecureRandom, SystemRandom};
-use data_encoding;
-
-static DIGEST_ALG: &'static digest::Algorithm = &digest::SHA256;
-const CREDENTIAL_LEN: usize = digest::SHA256_OUTPUT_LEN;
-type Credential = [u8; CREDENTIAL_LEN];
-
-impl SaltController {
-  pub fn gen_salt(&self) {
-    let mut v = [0u8; CREDENTIAL_LEN];
-    let _ = SystemRandom.fill(&mut v);
-    self.create(&Salt { salt: Some(data_encoding::HEXUPPER.encode(&v[..])) });
-  }
 }

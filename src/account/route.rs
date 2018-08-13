@@ -8,15 +8,16 @@ use diesel::ExpressionMethods;
 use policy::Bearer;
 use rocket_contrib::{Json, Value, UUID};
 use schema;
-use uuid::Uuid;
 use std::error::Error;
-
+use uuid::Uuid;
 
 #[get("/accounts/<id>")]
 pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json<AccountWithId>, Json> {
     match AccountController.get_one(Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
         Ok(model) => Ok(Json(model)),
-        Err(e) => Err(Json(json!({ "message": "get failed", "error": e.description() }))),
+        Err(e) => Err(Json(
+            json!({ "message": "get failed", "error": e.description() }),
+        )),
     }
 }
 
@@ -40,14 +41,11 @@ pub fn create_account(_policy: Bearer, account: Json<Account>) -> Result<Json, J
 )]
 pub fn update_account(_policy: Bearer, id: UUID, payload: Json<Account>) -> Result<Json, Json> {
     let mut model = payload.into_inner();
-    
+
     // Prevent the uuid from being changed manually
     model.uuid = None;
 
-    match AccountController.update(
-        &model,
-        Box::new(schema::accounts::uuid.eq(id.into_inner())),
-    ) {
+    match AccountController.update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
         Ok(model) => Ok(Json(json!({ "model": model }))),
         Err(e) => Err(Json(json!("update failed"))),
     }
@@ -58,7 +56,10 @@ pub fn update_account(_policy: Bearer, id: UUID, payload: Json<Account>) -> Resu
     format = "application/json",
     data = "<payload>"
 )]
-pub fn change_password(_policy: Bearer, payload: Json<ChangePasswordPayload>) -> Result<Json, Json> {
+pub fn change_password(
+    _policy: Bearer,
+    payload: Json<ChangePasswordPayload>,
+) -> Result<Json, Json> {
     AccountController.change_password(payload.into_inner())?;
     Ok(Json(json!({})))
 }

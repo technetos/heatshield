@@ -51,4 +51,3 @@ impl ResourceController for AccountController {
             .get_result::<AccountWithId>(&connection())?)
     }
 }
-

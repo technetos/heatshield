@@ -21,15 +21,11 @@ impl Salt {
 }
 
 impl Queryable<salts::SqlType, diesel::pg::Pg> for SaltWithId {
-    type Row = (
-        i32,
-        Option<String>
-    );
+    type Row = (i32, Option<String>);
     fn build(row: Self::Row) -> Self {
         SaltWithId {
             id: row.0,
-            salt: Salt { salt: row.1 }
+            salt: Salt { salt: row.1 },
         }
     }
 }
-
