@@ -5,7 +5,6 @@ table! {
     access_tokens (id) {
         id -> Int4,
         client_id -> Int4,
-        enabled -> Bool,
     }
 }
 
@@ -29,10 +28,8 @@ table! {
 
     clients (id) {
         id -> Int4,
-        kind -> Clientkind,
-        name -> Text,
-        email -> Text,
-        enabled -> Bool,
+        name -> Nullable<Text>,
+        email -> Nullable<Text>,
     }
 }
 

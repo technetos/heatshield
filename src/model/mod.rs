@@ -8,7 +8,6 @@ use schema::{access_tokens, accounts, clients, confirmations, salts, verificatio
 pub struct AccessToken {
     pub id: i32,
     pub client_id: Option<i32>,
-    pub enabled: Option<bool>,
 }
 
 pub type Clientkind = ClientKind;
