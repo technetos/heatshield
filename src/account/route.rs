@@ -10,8 +10,9 @@ use rocket_contrib::{Json, Value, UUID};
 use schema;
 use std::error::Error;
 use uuid::Uuid;
+use validate::Validator;
 
-#[get("/accounts/<id>")]
+#[get("/accounts/<id>", format = "application/json")]
 pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json<AccountWithId>, Json> {
     match AccountController.get_one(Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
         Ok(model) => Ok(Json(model)),
@@ -25,8 +26,13 @@ pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json<AccountWithId>, Jso
 pub fn create_account(_policy: Bearer, account: Json<Account>) -> Result<Json, Json> {
     let mut model = account.into_inner();
 
+    // Ensure the required fields are met
+    model.validate()?;
+
     // Dont allow the uuid to be set manually
     model.uuid = Some(Uuid::new_v4());
+
+    model.hash_password();
 
     match AccountController.create(&model) {
         Ok(model) => Ok(Json(json!({ "model": model }))),
