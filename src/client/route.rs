@@ -1,61 +1,47 @@
-use client::{model::{ClientWithId, Client}, controller::ClientController};
+use client::{
+    controller::ClientController,
+    model::{Client, ClientWithId},
+};
 use controller::ResourceController;
 use diesel::ExpressionMethods;
+use jsonwebtoken;
 use policy::Bearer;
 use rocket_contrib::{Json, Value, UUID};
 use schema;
 use std::error::Error;
 use uuid::Uuid;
+use validate::Validator;
 
-#[get("/clients/<id>")]
-pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json, Json> {
-    match ClientController.get_one(Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
-        Ok(model) => Ok(Json(model)),
+#[get("/clients/<id>", format = "application/json")]
+pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Json> {
+    match ClientController.get_one(Box::new(schema::clients::uuid.eq(id.into_inner()))) {
+        Ok(model) => Ok(Json(json!({ "model": model.client }))),
         Err(e) => Err(Json(
             json!({ "message": "get failed", "error": e.description() }),
         )),
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct CreateClientPayload {
+    name: String,
+    email: String,
+}
+
 #[post("/clients", format = "application/json", data = "<payload>")]
-pub fn create_account(_policy: Bearer, account: Json<Client>) -> Result<Json, Json> {
-    let mut model = account.into_inner();
+pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Result<Json, Json> {
+    let mut payload = payload.into_inner();
 
-    // Dont allow the uuid to be set manually
-    model.uuid = Some(Uuid::new_v4());
+    let client = Client {
+        email: Some(payload.email),
+        name: Some(payload.name),
+        uuid: Uuid::new_v4(),
+    };
 
-    match AccountController.create(&model) {
-        Ok(model) => Ok(Json(json!({ "model": model }))),
+    client.validate()?;
+
+    match ClientController.create(&client) {
+        Ok(model) => Ok(Json(json!({ "model": model.client }))),
         Err(e) => Err(Json(json!("create failed"))),
     }
-}
-
-#[put(
-    "/accounts/<id>",
-    format = "application/json",
-    data = "<payload>"
-)]
-pub fn update_account(_policy: Bearer, id: UUID, payload: Json<Account>) -> Result<Json, Json> {
-    let mut model = payload.into_inner();
-
-    // Prevent the uuid from being changed manually
-    model.uuid = None;
-
-    match AccountController.update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
-        Ok(model) => Ok(Json(json!({ "model": model }))),
-        Err(e) => Err(Json(json!("update failed"))),
-    }
-}
-
-#[post(
-    "/accounts/password",
-    format = "application/json",
-    data = "<payload>"
-)]
-pub fn change_password(
-    _policy: Bearer,
-    payload: Json<ChangePasswordPayload>,
-) -> Result<Json, Json> {
-    AccountController.change_password(payload.into_inner())?;
-    Ok(Json(json!({})))
 }

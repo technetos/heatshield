@@ -1,7 +1,8 @@
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
-use schema::clients;
 use rocket_contrib::{Json, Value};
+use schema::clients;
 use uuid::Uuid;
+use validate::Validator;
 
 #[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
 #[table_name = "clients"]
@@ -13,7 +14,7 @@ pub struct ClientWithId {
 #[derive(Serialize, Deserialize, FromSqlRow, Insertable, AsChangeset, Debug, PartialEq)]
 #[table_name = "clients"]
 pub struct Client {
-    pub uuid: Option<Uuid>,
+    pub uuid: Uuid,
     pub name: Option<String>,
     pub email: Option<String>,
 }
@@ -21,24 +22,37 @@ pub struct Client {
 impl Client {
     pub fn new() -> Self {
         Self {
-          uuid: None,
-          name: None,
-          email: None,
+            uuid: Uuid::nil(),
+            name: None,
+            email: None,
         }
+    }
+}
+
+impl Validator for Client {
+    fn validate(&self) -> Result<(), Json> {
+        if self.name.is_none() {
+            return Err(Json(json!("name required")));
+        }
+
+        if self.email.is_none() {
+            return Err(Json(json!("email required")));
+        }
+
+        Ok(())
     }
 }
 
 impl Queryable<clients::SqlType, diesel::pg::Pg> for ClientWithId {
-    type Row = (i32, Option<Uuid>, Option<String>, Option<String>);
+    type Row = (i32, Uuid, Option<String>, Option<String>);
     fn build(row: Self::Row) -> Self {
         Self {
             id: row.0,
             client: Client {
-              uuid: row.1
-              name: row.2,
-              email: row.3,
+                uuid: row.1,
+                name: row.2,
+                email: row.3,
             },
         }
     }
 }
-

@@ -27,7 +27,7 @@ fn salt_component() -> Result<String, diesel::result::Error> {
         .get_one(Box::new(schema::salts::id.eq(1)))?
         .salt
         .salt
-        .unwrap()
+        .expect("No salt found")
         .to_string())
 }
 

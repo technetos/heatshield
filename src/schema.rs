@@ -4,7 +4,7 @@ table! {
 
     access_tokens (id) {
         id -> Int4,
-        client_id -> Int4,
+        client_id -> Uuid,
     }
 }
 
@@ -28,6 +28,7 @@ table! {
 
     clients (id) {
         id -> Int4,
+        uuid -> Uuid,
         name -> Nullable<Text>,
         email -> Nullable<Text>,
     }
@@ -65,7 +66,6 @@ table! {
     }
 }
 
-joinable!(access_tokens -> clients (client_id));
 joinable!(accounts -> verifications (verification_id));
 
 allow_tables_to_appear_in_same_query!(

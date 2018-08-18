@@ -1,11 +1,12 @@
 #![feature(plugin, decl_macro, custom_derive)]
 #![plugin(rocket_codegen)]
+#![feature(generic_associated_types)]
 
 pub const BASEPATH: &'static str = "/heatshield/v1";
 
 pub mod account;
-pub mod controller;
 pub mod client;
+pub mod controller;
 mod db;
 pub mod model;
 mod policy;
@@ -36,3 +37,5 @@ extern crate data_encoding;
 extern crate ring;
 
 extern crate uuid;
+
+extern crate jsonwebtoken;

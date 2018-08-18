@@ -1,8 +1,12 @@
+use controller::ResourceController;
+use diesel::ExpressionMethods;
+use jsonwebtoken;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
 use rocket::Outcome;
 use rocket_contrib::{Json, Value};
 use schema;
+use token::{controller::AccessTokenController, model::AccessToken};
 
 pub struct Bearer;
 
@@ -35,10 +39,13 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
         let token = parts[1];
 
         println!("{}", token);
-        // verify token
+
+        let decoded = jsonwebtoken::decode::<AccessToken>(
+            token,
+            b"00000000-0000-0000-0000-000000000000",
+            &jsonwebtoken::Validation::default(),
+        );
 
         Outcome::Success(Bearer)
     }
 }
-
-// IssueToken policy
