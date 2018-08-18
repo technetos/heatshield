@@ -1,6 +1,5 @@
 table! {
     use diesel::sql_types::*;
-    use model::Clientkind;
 
     access_tokens (id) {
         id -> Int4,
@@ -10,7 +9,6 @@ table! {
 
 table! {
     use diesel::sql_types::*;
-    use model::Clientkind;
 
     accounts (id) {
         id -> Int4,
@@ -24,7 +22,6 @@ table! {
 
 table! {
     use diesel::sql_types::*;
-    use model::Clientkind;
 
     clients (id) {
         id -> Int4,
@@ -36,7 +33,6 @@ table! {
 
 table! {
     use diesel::sql_types::*;
-    use model::Clientkind;
 
     confirmations (id) {
         id -> Int4,
@@ -46,7 +42,6 @@ table! {
 
 table! {
     use diesel::sql_types::*;
-    use model::Clientkind;
 
     salts (id) {
         id -> Int4,
@@ -56,7 +51,6 @@ table! {
 
 table! {
     use diesel::sql_types::*;
-    use model::Clientkind;
 
     verifications (id) {
         id -> Int4,
