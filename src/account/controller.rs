@@ -1,9 +1,9 @@
 use account::model::{Account, AccountWithId};
 use controller::{Expr, Resource, ResourceController, ResourceSql, ResourceTable, ResourceWithId};
 use diesel::{insert_into, prelude::*, result::Error, update};
-use verification::model::{Confirmation, Verification};
 use rocket_contrib::{Json, Value};
 use schema::accounts;
+use verification::model::{Confirmation, Verification};
 
 pub struct AccountController;
 

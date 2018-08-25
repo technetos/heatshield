@@ -1,20 +1,24 @@
 #![feature(plugin, decl_macro, custom_derive)]
 #![plugin(rocket_codegen)]
 #![feature(generic_associated_types)]
+#![feature(tool_attributes)]
 
 pub const BASEPATH: &'static str = "/heatshield/v1";
 
 pub mod account;
 pub mod client;
+mod client_token;
 pub mod controller;
-pub mod verification;
 mod db;
+mod granter;
 mod policy;
-pub mod salt;
+mod salt;
 mod sanitize;
 mod schema;
 pub mod token;
+mod user_token;
 mod validate;
+mod verification;
 
 extern crate rocket;
 #[macro_use]

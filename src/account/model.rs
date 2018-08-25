@@ -1,12 +1,12 @@
 use chrono::NaiveDateTime;
 use data_encoding;
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
-use verification::model::Verification;
 use rocket_contrib::{Json, Value};
-use schema::{access_tokens, accounts, clients, confirmations, verifications};
-use uuid::Uuid;
 use salt::model::Salt;
+use schema::{accounts, clients, confirmations, verifications};
+use uuid::Uuid;
 use validate::Validator;
+use verification::model::Verification;
 
 #[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
 #[belongs_to(Verification)]

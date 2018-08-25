@@ -1,3 +1,7 @@
+use client_token::{
+    controller::ClientTokenController,
+    model::{ClientToken, ClientTokenWithId},
+};
 use controller::ResourceController;
 use diesel::ExpressionMethods;
 use jsonwebtoken;
@@ -6,7 +10,10 @@ use rocket::request::{self, FromRequest, Request};
 use rocket::Outcome;
 use rocket_contrib::{Json, Value};
 use schema;
-use token::{controller::AccessTokenController, model::AccessToken};
+use user_token::{
+    controller::UserTokenController,
+    model::{UserToken, UserTokenWithId},
+};
 
 pub struct Bearer;
 
@@ -40,11 +47,15 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
 
         println!("{}", token);
 
-        let decoded = jsonwebtoken::decode::<AccessToken>(
+        let decoded = jsonwebtoken::decode::<UserToken>(
             token,
-            b"00000000-0000-0000-0000-000000000000",
+            b"secret",
             &jsonwebtoken::Validation::default(),
-        );
+        ).unwrap();
+
+        let dirty_token = UserTokenController.get_one(Box::new(schema::user_tokens::refresh_id.eq(decoded.claims.refresh_id)));
+
+        
 
         Outcome::Success(Bearer)
     }

@@ -16,5 +16,3 @@ pub struct Confirmation {
     pub id: i32,
     pub code: Option<String>,
 }
-
-
