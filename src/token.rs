@@ -23,8 +23,6 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize)]
 pub struct TokenPayload {
     client_id: Option<Uuid>,
-    account_id: Option<Uuid>,
-    refresh_id: Option<Uuid>,
     grant_type: Option<String>,
     credentials: Option<LoginPayload>,
 }
@@ -33,14 +31,6 @@ impl Validator for TokenPayload {
     fn validate(&self) -> Result<(), Json> {
         if self.client_id.is_none() {
             return Err(Json(json!("client_id required")));
-        }
-
-        if self.account_id.is_none() {
-            return Err(Json(json!("account_id required")));
-        }
-
-        if self.refresh_id.is_none() {
-            return Err(Json(json!("refresh_id required")));
         }
 
         if self.grant_type.is_none() {
@@ -55,8 +45,6 @@ impl Validator for TokenPayload {
     }
 }
 
-// When using ssl, a post body is encrypted.  We do not need to manually encrypt
-// this payload.
 #[derive(Serialize, Deserialize)]
 pub struct LoginPayload {
     username: String,
