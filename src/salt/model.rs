@@ -11,17 +11,11 @@ pub struct SaltWithId {
 #[derive(Serialize, Deserialize, FromSqlRow, Insertable, AsChangeset, Debug, PartialEq)]
 #[table_name = "salts"]
 pub struct Salt {
-    pub salt: Option<String>,
-}
-
-impl Salt {
-    pub fn new() -> Self {
-        Self { salt: None }
-    }
+    pub salt: String,
 }
 
 impl Queryable<salts::SqlType, diesel::pg::Pg> for SaltWithId {
-    type Row = (i32, Option<String>);
+    type Row = (i32, String);
     fn build(row: Self::Row) -> Self {
         SaltWithId {
             id: row.0,

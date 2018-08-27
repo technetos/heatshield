@@ -13,7 +13,7 @@ impl SaltController {
         let mut v = [0u8; CREDENTIAL_LEN];
         let _ = SystemRandom.fill(&mut v);
         self.create(&Salt {
-            salt: Some(data_encoding::HEXUPPER.encode(&v[..])),
+            salt: data_encoding::HEXUPPER.encode(&v[..]),
         });
     }
 }

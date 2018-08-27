@@ -62,7 +62,8 @@ pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Json> {
     let client = ClientController
         .get_one(Box::new(
             schema::clients::uuid.eq(payload.client_id.unwrap()),
-        )).map_err(|_| Json(json!("client not found")))?;
+        )).map_err(|_| Json(json!("client not found")))?
+        .client;
 
     match granter {
         Granter::Password => {
@@ -70,7 +71,8 @@ pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Json> {
             let account = AccountController
                 .get_one(Box::new(
                     schema::accounts::username.eq(credentials.username),
-                )).map_err(|_| Json(json!("invalid credentials")))?;
+                )).map_err(|_| Json(json!("invalid credentials")))?
+                .account;
 
             if !account.verify_password(&credentials.password) {
                 return Err(Json(json!("invalid credentials")));
@@ -78,8 +80,8 @@ pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Json> {
 
             let token = UserTokenController
                 .create(&UserToken {
-                    client_id: client.client.uuid,
-                    account_id: account.account.uuid.unwrap(),
+                    client_id: client.uuid,
+                    account_id: account.uuid.unwrap(),
                     refresh_id: Uuid::new_v4(),
                 }).map_err(|_| Json(json!("unable to create user token")))?
                 .user_token;

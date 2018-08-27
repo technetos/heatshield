@@ -53,9 +53,9 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
             &jsonwebtoken::Validation::default(),
         ).unwrap();
 
-        let dirty_token = UserTokenController.get_one(Box::new(schema::user_tokens::refresh_id.eq(decoded.claims.refresh_id)));
-
-        
+        let dirty_token = UserTokenController.get_one(Box::new(
+            schema::user_tokens::refresh_id.eq(decoded.claims.refresh_id),
+        ));
 
         Outcome::Success(Bearer)
     }

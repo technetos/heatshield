@@ -45,7 +45,7 @@ table! {
 
     salts (id) {
         id -> Int4,
-        salt -> Nullable<Text>,
+        salt -> Text,
     }
 }
 

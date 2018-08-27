@@ -25,24 +25,6 @@ static DIGEST_ALG: &'static digest::Algorithm = &digest::SHA256;
 const CREDENTIAL_LEN: usize = digest::SHA256_OUTPUT_LEN;
 type Credential = [u8; CREDENTIAL_LEN];
 
-impl AccountWithId {
-    pub fn verify_password(&self, current_pw: &str) -> bool {
-        let pw_salt = db::salt(self.account.email.as_ref().unwrap()).unwrap();
-        let mut actual: Credential = [0u8; CREDENTIAL_LEN];
-
-        pbkdf2::derive(
-            DIGEST_ALG,
-            100_000,
-            &pw_salt,
-            current_pw.to_owned().as_bytes(),
-            &mut actual,
-        );
-        let actual_hash = HEXUPPER.encode(&actual);
-
-        Some(&actual_hash) == self.account.password.as_ref()
-    }
-}
-
 #[derive(Serialize, Deserialize, FromSqlRow, Insertable, AsChangeset, Debug, PartialEq)]
 #[table_name = "accounts"]
 pub struct Account {
@@ -60,6 +42,22 @@ impl Account {
             password: None,
             email: None,
         }
+    }
+
+    pub fn verify_password(&self, current_pw: &str) -> bool {
+        let pw_salt = db::salt(self.email.as_ref().unwrap()).unwrap();
+        let mut actual: Credential = [0u8; CREDENTIAL_LEN];
+
+        pbkdf2::derive(
+            DIGEST_ALG,
+            100_000,
+            &pw_salt,
+            current_pw.to_owned().as_bytes(),
+            &mut actual,
+        );
+        let actual_hash = HEXUPPER.encode(&actual);
+
+        Some(&actual_hash) == self.password.as_ref()
     }
 
     pub fn hash_password(&mut self) {

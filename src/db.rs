@@ -26,9 +26,7 @@ fn salt_component() -> Result<String, diesel::result::Error> {
     Ok(SaltController
         .get_one(Box::new(schema::salts::id.eq(1)))?
         .salt
-        .salt
-        .expect("No salt found")
-        .to_string())
+        .salt)
 }
 
 pub fn salt(username: &str) -> Result<Vec<u8>, ()> {

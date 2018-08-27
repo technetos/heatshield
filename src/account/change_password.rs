@@ -9,26 +9,6 @@ use validate::Validator;
 
 use schema;
 
-impl AccountController {
-    pub fn change_password(&self, payload: ChangePasswordPayload) -> Result<Json, Json> {
-        payload.validate()?;
-
-        match self.get_one(Box::new(schema::accounts::uuid.eq(payload.account_id))) {
-            Ok(mut model) => {
-                if model.verify_password(&payload.password.current) {
-                    model.account.password = Some(payload.password.current);
-                    let _ =
-                        self.update(&model.account, Box::new(schema::accounts::id.eq(model.id)));
-                    Ok(Json(json!(true)))
-                } else {
-                    Err(Json(json!("invalid current_password")))
-                }
-            }
-            Err(e) => Err(Json(json!("invalid id"))),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChangePasswordPayload {
     account_id: Uuid,
@@ -49,6 +29,30 @@ impl Validator for ChangePasswordPayload {
             )))
         } else {
             Ok(())
+        }
+    }
+}
+
+impl AccountController {
+    pub fn change_password(&self, payload: ChangePasswordPayload) -> Result<Json, Json> {
+        payload.validate()?;
+
+        let mut model = self
+            .get_one(Box::new(schema::accounts::uuid.eq(payload.account_id)))
+            .map_err(|_| Json(json!("account not found")))?;
+
+        let mut account = &mut model.account;
+
+        if account.verify_password(&payload.password.current) {
+            account.password = Some(payload.password.current);
+
+            let _ = self
+                .update(&account, Box::new(schema::accounts::id.eq(model.id)))
+                .map_err(|_| Json(json!("unable to update account")))?;
+
+            Ok(Json(json!(true)))
+        } else {
+            Err(Json(json!("invalid current_password")))
         }
     }
 }
