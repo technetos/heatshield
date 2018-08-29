@@ -12,7 +12,12 @@ pub mod controller;
 mod db;
 mod granter;
 mod policy;
+
+#[cfg(not(feature = "gensalt"))]
 mod salt;
+#[cfg(feature = "gensalt")]
+pub mod salt;
+
 mod sanitize;
 mod schema;
 pub mod token;

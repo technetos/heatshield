@@ -3,6 +3,9 @@ name = "heatshield"
 version = "0.1.0"
 authors = ["technetos <mrgould93@gmail.com>"]
 
+[features]
+gensalt = []
+
 [dependencies]
 serde_derive = "1.0.27"
 serde = "1.0"
