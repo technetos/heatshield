@@ -22,7 +22,7 @@ mod sanitize;
 mod schema;
 pub mod token;
 mod user_token;
-mod validate;
+pub mod validate;
 mod verification;
 
 extern crate rocket;
