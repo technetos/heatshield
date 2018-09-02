@@ -14,8 +14,11 @@ use user_token::{
     controller::UserTokenController,
     model::{UserToken, UserTokenWithId},
 };
+use uuid::Uuid;
 
-pub struct Bearer;
+pub struct Bearer {
+    pub auth: String,
+}
 
 fn is_valid(parts: &Vec<&str>) -> bool {
     if let Some(part) = parts.first() {
@@ -53,10 +56,33 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
             &jsonwebtoken::Validation::default(),
         ).unwrap();
 
-        let dirty_token = UserTokenController.get_one(Box::new(
+        let mut _token = UserTokenController.get_one(Box::new(
             schema::user_tokens::refresh_id.eq(decoded.claims.refresh_id),
         ));
 
-        Outcome::Success(Bearer)
+        if let Ok(ref mut dirty_token) = _token {
+            dirty_token.user_token.refresh_id = Uuid::new_v4();
+            let new_token = UserTokenController.update(
+                &dirty_token.user_token,
+                Box::new(schema::user_tokens::id.eq(dirty_token.id)),
+            );
+
+            let _jwt = jsonwebtoken::encode(
+                &jsonwebtoken::Header::default(),
+                &new_token.unwrap().user_token,
+                b"secret",
+            );
+
+            if let Ok(jwt) = _jwt {
+                return Outcome::Success(Bearer { auth: jwt });
+            } else {
+                return Outcome::Failure((
+                    Status::BadRequest,
+                    Json(json!("error creating jsonwebtoken")),
+                ));
+            }
+        } else {
+            return Outcome::Failure((Status::BadRequest, Json(json!("Invalid token"))));
+        }
     }
 }

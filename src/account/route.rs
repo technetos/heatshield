@@ -23,7 +23,7 @@ pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json<AccountWithId>, Jso
 }
 
 #[post("/accounts", format = "application/json", data = "<account>")]
-pub fn create_account(_policy: Bearer, account: Json<Account>) -> Result<Json, Json> {
+pub fn create_account(policy: Bearer, account: Json<Account>) -> Result<Json, Json> {
     let mut model = account.into_inner();
 
     // Ensure the required fields are met
@@ -35,7 +35,7 @@ pub fn create_account(_policy: Bearer, account: Json<Account>) -> Result<Json, J
     model.hash_password();
 
     match AccountController.create(&model) {
-        Ok(model) => Ok(Json(json!({ "model": model }))),
+        Ok(model) => Ok(Json(json!({ "auth": policy.auth, "model": model }))),
         Err(e) => Err(Json(json!("create failed"))),
     }
 }
