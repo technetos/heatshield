@@ -3,7 +3,7 @@ use data_encoding;
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
 use rocket_contrib::{Json, Value};
 use salt::model::Salt;
-use schema::{accounts, clients, confirmations, verifications};
+use schema::{accounts, clients, verifications};
 use uuid::Uuid;
 use validate::Validator;
 use verification::model::Verification;

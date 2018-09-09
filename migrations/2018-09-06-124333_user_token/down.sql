@@ -1,2 +1,2 @@
 -- This file should undo anything in `up.sql`
-DROP TABLE confirmations
+drop table user_tokens

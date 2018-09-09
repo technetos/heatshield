@@ -25,18 +25,9 @@ table! {
 table! {
     use diesel::sql_types::*;
 
-    client_tokens (id) {
+    refresh_tokens (id) {
         id -> Int4,
-        client_id -> Uuid,
-    }
-}
-
-table! {
-    use diesel::sql_types::*;
-
-    confirmations (id) {
-        id -> Int4,
-        code -> Text,
+        uuid -> Uuid,
     }
 }
 
@@ -56,7 +47,7 @@ table! {
         id -> Int4,
         client_id -> Uuid,
         account_id -> Uuid,
-        refresh_id -> Uuid,
+        refresh_id -> Nullable<Uuid>,
     }
 }
 
@@ -67,7 +58,6 @@ table! {
         id -> Int4,
         verified_at -> Nullable<Timestamp>,
         ip_address -> Text,
-        confirmation_id -> Int4,
     }
 }
 
@@ -76,8 +66,7 @@ joinable!(accounts -> verifications (verification_id));
 allow_tables_to_appear_in_same_query!(
     accounts,
     clients,
-    client_tokens,
-    confirmations,
+    refresh_tokens,
     salts,
     user_tokens,
     verifications,

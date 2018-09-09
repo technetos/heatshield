@@ -17,11 +17,11 @@ pub struct UserTokenWithId {
 pub struct UserToken {
     pub client_id: Uuid,
     pub account_id: Uuid,
-    pub refresh_id: Uuid,
+    pub refresh_id: Option<Uuid>,
 }
 
 impl Queryable<user_tokens::SqlType, diesel::pg::Pg> for UserTokenWithId {
-    type Row = (i32, Uuid, Uuid, Uuid);
+    type Row = (i32, Uuid, Uuid, Option<Uuid>);
     fn build(row: Self::Row) -> Self {
         Self {
             id: row.0,

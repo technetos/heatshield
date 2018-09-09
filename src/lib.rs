@@ -7,7 +7,6 @@ pub const BASEPATH: &'static str = "/heatshield/v1";
 
 pub mod account;
 pub mod client;
-mod client_token;
 pub mod controller;
 mod db;
 mod granter;
@@ -18,6 +17,7 @@ mod salt;
 #[cfg(feature = "gensalt")]
 pub mod salt;
 
+mod refresh_token;
 mod sanitize;
 mod schema;
 pub mod token;

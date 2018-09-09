@@ -19,16 +19,6 @@ pub struct Client {
     pub email: Option<String>,
 }
 
-impl Client {
-    pub fn new() -> Self {
-        Self {
-            uuid: Uuid::nil(),
-            name: None,
-            email: None,
-        }
-    }
-}
-
 impl Validator for Client {
     fn validate(&self) -> Result<(), Json> {
         if self.name.is_none() {

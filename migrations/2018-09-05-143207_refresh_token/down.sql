@@ -1,2 +1,2 @@
 -- This file should undo anything in `up.sql`
-DROP TABLE access_tokens
+drop table refresh_tokens
