@@ -35,15 +35,6 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new() -> Self {
-        Self {
-            uuid: None,
-            username: None,
-            password: None,
-            email: None,
-        }
-    }
-
     pub fn verify_password(&self, current_pw: &str) -> bool {
         let pw_salt = db::salt(self.email.as_ref().unwrap()).unwrap();
         let mut actual: Credential = [0u8; CREDENTIAL_LEN];

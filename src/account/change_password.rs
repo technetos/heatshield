@@ -46,6 +46,8 @@ impl AccountController {
         if account.verify_password(&payload.password.current) {
             account.password = Some(payload.password.current);
 
+            account.hash_password();
+
             let _ = self
                 .update(&account, Box::new(schema::accounts::id.eq(model.id)))
                 .map_err(|_| Json(json!("unable to update account")))?;
