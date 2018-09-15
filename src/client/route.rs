@@ -14,12 +14,15 @@ use validate::Validator;
 
 #[get("/clients/<id>", format = "application/json")]
 pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Json> {
-    match ClientController.get_one(Box::new(schema::clients::uuid.eq(id.into_inner()))) {
-        Ok(model) => Ok(Json(json!({ "model": model.client }))),
-        Err(e) => Err(Json(
-            json!({ "message": "get failed", "error": e.description() }),
-        )),
-    }
+
+  let client = ClientController
+    .get_one(Box::new(schema::clients::uuid.eq(id.into_inner()))) 
+    .map_err(|e| match e {
+      _ => Json(json!("no client found"))
+    })?.client;
+
+
+  Ok(Json(json!({ "model": client })))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -40,8 +43,11 @@ pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Res
 
     client.validate()?;
 
-    match ClientController.create(&client) {
-        Ok(model) => Ok(Json(json!({ "model": model.client }))),
-        Err(e) => Err(Json(json!("create failed"))),
-    }
+    let client = ClientController
+      .create(&client)
+      .map_err(|e| match e {
+        _ => Json(json!("unable to create client"))
+      })?.client;
+
+    Ok(Json(json!({ "model": client })))
 }

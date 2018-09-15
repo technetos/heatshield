@@ -35,7 +35,7 @@ impl Validator for ChangePasswordPayload {
 
 impl AccountController {
     pub fn change_password(&self, payload: ChangePasswordPayload) -> Result<Json, Json> {
-        payload.validate()?;
+        let _ = payload.validate()?;
 
         let mut model = self
             .get_one(Box::new(schema::accounts::uuid.eq(payload.account_id)))
@@ -43,18 +43,20 @@ impl AccountController {
 
         let mut account = &mut model.account;
 
-        if account.verify_password(&payload.password.current) {
+        if !account.verify_password(&payload.password.current) {
+            Err(Json(json!("invalid current_password")))
+        } else {
             account.password = Some(payload.password.current);
 
             account.hash_password();
 
             let _ = self
                 .update(&account, Box::new(schema::accounts::id.eq(model.id)))
-                .map_err(|_| Json(json!("unable to update account")))?;
+                .map_err(|e| match e {
+                  _ => Json(json!("unable to update account"))
+                })?;
 
             Ok(Json(json!(true)))
-        } else {
-            Err(Json(json!("invalid current_password")))
         }
     }
 }

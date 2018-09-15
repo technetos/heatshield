@@ -13,31 +13,33 @@ use uuid::Uuid;
 use validate::Validator;
 
 #[get("/accounts/<id>", format = "application/json")]
-pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json<AccountWithId>, Json> {
-    match AccountController.get_one(Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
-        Ok(model) => Ok(Json(model)),
-        Err(e) => Err(Json(
-            json!({ "message": "get failed", "error": e.description() }),
-        )),
-    }
+pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json, Json> {
+    let account = AccountController
+        .get_one(Box::new(schema::accounts::uuid.eq(id.into_inner())))
+        .map_err(|e| match e {
+            _ => Json(json!("account not found")),
+        })?.account;
+
+    Ok(Json(json!({ "model": account })))
 }
 
 #[post("/accounts", format = "application/json", data = "<account>")]
 pub fn create_account(_policy: Bearer, account: Json<Account>) -> Result<Json, Json> {
     let mut model = account.into_inner();
 
-    // Ensure the required fields are met
-    model.validate()?;
+    let _ = model.validate()?;
 
-    // Dont allow the uuid to be set manually
     model.uuid = Some(Uuid::new_v4());
 
     model.hash_password();
 
-    match AccountController.create(&model) {
-        Ok(model) => Ok(Json(json!({ "model": model }))),
-        Err(e) => Err(Json(json!("create failed"))),
-    }
+    let account = AccountController
+        .create(&model)
+        .map_err(|e| match e {
+            _ => Json(json!("unable to create account")),
+        })?.account;
+
+    Ok(Json(json!({ "model": account })))
 }
 
 #[put(
@@ -51,10 +53,13 @@ pub fn update_account(_policy: Bearer, id: UUID, payload: Json<Account>) -> Resu
     // Prevent the uuid from being changed manually
     model.uuid = None;
 
-    match AccountController.update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner()))) {
-        Ok(model) => Ok(Json(json!({ "model": model }))),
-        Err(e) => Err(Json(json!("update failed"))),
-    }
+    let account = AccountController
+      .update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner())))
+      .map_err(|e| match e {
+        _ => Json(json!("unable to update account"))
+      })?.account;
+
+    Ok(Json(json!({ "model": account })))
 }
 
 #[post(
