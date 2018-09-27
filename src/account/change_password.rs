@@ -53,7 +53,7 @@ impl AccountController {
             let _ = self
                 .update(&account, Box::new(schema::accounts::id.eq(model.id)))
                 .map_err(|e| match e {
-                  _ => Json(json!("unable to update account"))
+                    _ => Json(json!("unable to update account")),
                 })?;
 
             Ok(Json(json!(true)))

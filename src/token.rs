@@ -1,24 +1,13 @@
-use account::controller::AccountController;
 use client::controller::ClientController;
 use controller::ResourceController;
 use diesel::ExpressionMethods;
-use granter::Granter;
-use policy::Bearer;
-use refresh_token::{
-    controller::RefreshTokenController,
-    model::{RefreshToken, RefreshTokenWithId},
-};
+use granter::{grant_token, Granter, Password, Refresh};
+use jsonwebtoken;
 use rocket_contrib::{Json, Value, UUID};
 use schema;
 use std::error::Error;
-use user_token::{
-    controller::UserTokenController,
-    model::{UserToken, UserTokenWithId},
-};
-use validate::Validator;
-
-use jsonwebtoken;
 use uuid::Uuid;
+use validate::Validator;
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenPayload {
@@ -58,17 +47,15 @@ impl Validator for TokenPayload {
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginPayload {
-    username: String,
-    password: String,
+    pub username: String,
+    pub password: String,
 }
 
 #[post("/token", format = "application/json", data = "<payload>")]
 pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Json> {
-    let payload = payload.into_inner();
+    let mut payload = payload.into_inner();
 
     let _ = payload.validate()?;
-
-    let granter = Granter::from_str(payload.grant_type.unwrap())?;
 
     let client = ClientController
         .get_one(Box::new(
@@ -76,73 +63,16 @@ pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Json> {
         )).map_err(|_| Json(json!("invalid client")))?
         .client;
 
-    match granter {
-        Granter::Password => {
-            let credentials = payload.credentials.unwrap();
-            let account = AccountController
-                .get_one(Box::new(
-                    schema::accounts::username.eq(credentials.username),
-                )).map_err(|e| match e {
-                    _ => Json(json!("invalid credentials")),
-                })?.account;
-
-            if !account.verify_password(&credentials.password) {
-                return Err(Json(json!("invalid credentials")));
-            }
-
-            let refresh_token = RefreshTokenController
-                .create(&RefreshToken {
-                    uuid: Uuid::new_v4(),
-                }).map_err(|e| match e {
-                    _ => Json(json!("unable to create refresh token")),
-                })?.refresh_token;
-
-            let token = UserTokenController
-                .create(&UserToken {
-                    client_id: client.uuid,
-                    account_id: account.uuid.unwrap(),
-                    refresh_id: Some(refresh_token.uuid),
-                }).map_err(|e| match e {
-                    _ => Json(json!("unable to create user token")),
-                })?.user_token;
-
-            let jwt = jsonwebtoken::encode(&jsonwebtoken::Header::default(), &token, b"secret")
-                .map_err(|e| match e {
-                  _ => Json(json!("error creating jsonwebtoken"))
-                })?;
-
-            Ok(Json(json!(format!("Bearer {}", jwt))))
-        }
-        Granter::RefreshToken => {
-            let refresh_token = RefreshTokenController
-                .get_one(Box::new(
-                    schema::refresh_tokens::uuid.eq(payload.refresh_id.unwrap()),
-                )).map_err(|e| match e {
-                    _ => Json(json!("invalid refresh_id")),
-                })?.refresh_token;
-
-            let account = AccountController
-                .get_one(Box::new(
-                    schema::accounts::uuid.eq(payload.account_id.unwrap()),
-                )).map_err(|e| match e {
-                    _ => Json(json!("invalid account")),
-                })?.account;
-
-            let token = UserTokenController
-                .create(&UserToken {
-                    client_id: client.uuid,
-                    account_id: account.uuid.unwrap(),
-                    refresh_id: Some(refresh_token.uuid),
-                }).map_err(|e| match e {
-                    _ => Json(json!("unable to create user token")),
-                })?.user_token;
-
-            let jwt = jsonwebtoken::encode(&jsonwebtoken::Header::default(), &token, b"secret")
-                .map_err(|e| match e {
-                  _ => Json(json!("error creating jsonwebtoken"))
-                })?;
-
-            Ok(Json(json!(format!("Bearer {}", jwt))))
-        }
+    match &payload.grant_type.unwrap()[..] {
+        "password" => grant_token(Password::new(
+            client.uuid,
+            payload.credentials.unwrap(),
+        )),
+        "refresh_token" => grant_token(Refresh::new(
+            client.uuid,
+            payload.account_id.unwrap(),
+            payload.refresh_id.unwrap(),
+        )),
+        _ => Err(Json(json!("invalid grant_type"))),
     }
 }

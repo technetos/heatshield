@@ -47,8 +47,6 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
 
         let token = parts[1];
 
-        println!("{}", token);
-
         let jwt = jsonwebtoken::decode::<UserToken>(
             token,
             b"secret",

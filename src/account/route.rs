@@ -54,10 +54,10 @@ pub fn update_account(_policy: Bearer, id: UUID, payload: Json<Account>) -> Resu
     model.uuid = None;
 
     let account = AccountController
-      .update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner())))
-      .map_err(|e| match e {
-        _ => Json(json!("unable to update account"))
-      })?.account;
+        .update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner())))
+        .map_err(|e| match e {
+            _ => Json(json!("unable to update account")),
+        })?.account;
 
     Ok(Json(json!({ "model": account })))
 }
