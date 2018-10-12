@@ -45,9 +45,11 @@ impl Granter for Password {
         let account = AccountController
             .get_one(Box::new(
                 schema::accounts::username.eq(self.credentials.username),
-            )).map_err(|e| match e {
+            ))
+            .map_err(|e| match e {
                 _ => Json(json!("invalid credentials")),
-            })?.account;
+            })?
+            .account;
 
         if !account.verify_password(&self.credentials.password) {
             return Err(Json(json!("invalid credentials")));
@@ -56,18 +58,22 @@ impl Granter for Password {
         let refresh_token = RefreshTokenController
             .create(&RefreshToken {
                 uuid: Uuid::new_v4(),
-            }).map_err(|e| match e {
+            })
+            .map_err(|e| match e {
                 _ => Json(json!("unable to create refresh token")),
-            })?.refresh_token;
+            })?
+            .refresh_token;
 
         let token = UserTokenController
             .create(&UserToken {
                 client_id: self.client_id,
                 account_id: account.uuid.unwrap(),
                 refresh_id: Some(refresh_token.uuid),
-            }).map_err(|e| match e {
+            })
+            .map_err(|e| match e {
                 _ => Json(json!("unable to create user token")),
-            })?.user_token;
+            })?
+            .user_token;
 
         let jwt = jsonwebtoken::encode(&jsonwebtoken::Header::default(), &token, b"secret")
             .map_err(|e| match e {
@@ -100,22 +106,26 @@ impl Granter for Refresh {
             .get_one(Box::new(schema::refresh_tokens::uuid.eq(self.refresh_id)))
             .map_err(|e| match e {
                 _ => Json(json!("invalid refresh_id")),
-            })?.refresh_token;
+            })?
+            .refresh_token;
 
         let account = AccountController
             .get_one(Box::new(schema::accounts::uuid.eq(self.account_id)))
             .map_err(|e| match e {
                 _ => Json(json!("invalid account")),
-            })?.account;
+            })?
+            .account;
 
         let token = UserTokenController
             .create(&UserToken {
                 client_id: self.client_id,
                 account_id: account.uuid.unwrap(),
                 refresh_id: Some(refresh_token.uuid),
-            }).map_err(|e| match e {
+            })
+            .map_err(|e| match e {
                 _ => Json(json!("unable to create user token")),
-            })?.user_token;
+            })?
+            .user_token;
 
         let jwt = jsonwebtoken::encode(&jsonwebtoken::Header::default(), &token, b"secret")
             .map_err(|e| match e {

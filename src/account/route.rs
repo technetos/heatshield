@@ -18,7 +18,8 @@ pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json, Json> {
         .get_one(Box::new(schema::accounts::uuid.eq(id.into_inner())))
         .map_err(|e| match e {
             _ => Json(json!("account not found")),
-        })?.account;
+        })?
+        .account;
 
     Ok(Json(json!({ "model": account })))
 }
@@ -37,7 +38,8 @@ pub fn create_account(_policy: Bearer, account: Json<Account>) -> Result<Json, J
         .create(&model)
         .map_err(|e| match e {
             _ => Json(json!("unable to create account")),
-        })?.account;
+        })?
+        .account;
 
     Ok(Json(json!({ "model": account })))
 }
@@ -57,7 +59,8 @@ pub fn update_account(_policy: Bearer, id: UUID, payload: Json<Account>) -> Resu
         .update(&model, Box::new(schema::accounts::uuid.eq(id.into_inner())))
         .map_err(|e| match e {
             _ => Json(json!("unable to update account")),
-        })?.account;
+        })?
+        .account;
 
     Ok(Json(json!({ "model": account })))
 }

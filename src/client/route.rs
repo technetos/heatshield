@@ -18,7 +18,8 @@ pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Json> {
         .get_one(Box::new(schema::clients::uuid.eq(id.into_inner())))
         .map_err(|e| match e {
             _ => Json(json!("no client found")),
-        })?.client;
+        })?
+        .client;
 
     Ok(Json(json!({ "model": client })))
 }
@@ -45,7 +46,8 @@ pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Res
         .create(&client)
         .map_err(|e| match e {
             _ => Json(json!("unable to create client")),
-        })?.client;
+        })?
+        .client;
 
     Ok(Json(json!({ "model": client })))
 }

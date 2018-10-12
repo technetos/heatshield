@@ -51,23 +51,28 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
             token,
             b"secret",
             &jsonwebtoken::Validation::default(),
-        ).map_err(|e| match e {
+        )
+        .map_err(|e| match e {
             _ => Err((Status::BadRequest, Json(json!("Invalid token")))),
         })?;
 
         let refresh_token = RefreshTokenController
             .get_one(Box::new(
                 schema::refresh_tokens::uuid.eq(jwt.claims.refresh_id.unwrap()),
-            )).map_err(|e| match e {
+            ))
+            .map_err(|e| match e {
                 _ => Err((Status::BadRequest, Json(json!("Invalid token")))),
-            })?.refresh_token;
+            })?
+            .refresh_token;
 
         let user_token = UserTokenController
             .get_one(Box::new(
                 schema::user_tokens::refresh_id.eq(refresh_token.uuid),
-            )).map_err(|e| match e {
+            ))
+            .map_err(|e| match e {
                 _ => Err((Status::BadRequest, Json(json!("Invalid token")))),
-            })?.user_token;
+            })?
+            .user_token;
 
         Outcome::Success(Bearer {})
     }

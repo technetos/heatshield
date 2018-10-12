@@ -60,14 +60,12 @@ pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Json> {
     let client = ClientController
         .get_one(Box::new(
             schema::clients::uuid.eq(payload.client_id.unwrap()),
-        )).map_err(|_| Json(json!("invalid client")))?
+        ))
+        .map_err(|_| Json(json!("invalid client")))?
         .client;
 
     match &payload.grant_type.unwrap()[..] {
-        "password" => grant_token(Password::new(
-            client.uuid,
-            payload.credentials.unwrap(),
-        )),
+        "password" => grant_token(Password::new(client.uuid, payload.credentials.unwrap())),
         "refresh_token" => grant_token(Refresh::new(
             client.uuid,
             payload.account_id.unwrap(),

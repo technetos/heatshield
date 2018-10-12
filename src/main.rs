@@ -22,5 +22,6 @@ fn main() {
                 client::route::get_client,
                 client::route::create_client,
             ],
-        ).launch();
+        )
+        .launch();
 }
