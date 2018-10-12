@@ -1,3 +1,4 @@
+#![recursion_limit = "512"]
 #![feature(plugin, decl_macro, custom_derive)]
 #![plugin(rocket_codegen)]
 #![feature(generic_associated_types)]
@@ -5,9 +6,12 @@
 
 pub const BASEPATH: &'static str = "/heatshield/v1";
 
+
+#[macro_use]
+pub mod controller;
+
 pub mod account;
 pub mod client;
-pub mod controller;
 mod db;
 mod granter;
 mod policy;
@@ -48,3 +52,6 @@ extern crate ring;
 extern crate uuid;
 
 extern crate jsonwebtoken;
+
+#[macro_use]
+extern crate mashup;

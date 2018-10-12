@@ -19,6 +19,7 @@ data-encoding = "2.1.1"
 ring = "0.11"
 uuid = { version = "0.6", features = ["serde", "v4"] }
 jsonwebtoken = "2"
+mashup = "0.1"
 
 [dev-dependencies]
 diesel_migrations = { version = "1.3.0", features = ["postgres"] }
