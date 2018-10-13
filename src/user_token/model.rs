@@ -1,6 +1,9 @@
-use client::model::{Client, ClientWithId};
+use crate::{
+    client::model::{Client, ClientWithId},
+    schema::user_tokens,
+};
+
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
-use schema::user_tokens;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]

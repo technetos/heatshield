@@ -1,6 +1,9 @@
-use client::model::{Client, ClientWithId};
-use controller::{Expr, Resource, ResourceController, ResourceSql, ResourceTable, ResourceWithId};
+use crate::{
+    client::model::{Client, ClientWithId},
+    controller::{Expr, Resource, ResourceController, ResourceSql, ResourceTable, ResourceWithId},
+    schema::clients::{table, SqlType},
+};
+
 use diesel::{insert_into, prelude::*, result::Error, update};
-use schema::clients::{table, SqlType};
 
 resource_controller!(Client);

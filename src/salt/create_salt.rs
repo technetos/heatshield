@@ -1,8 +1,11 @@
-use controller::ResourceController;
+use crate::{
+    controller::ResourceController,
+    salt::{controller::SaltController, model::Salt},
+};
+
 use data_encoding;
 use ring::rand::{SecureRandom, SystemRandom};
 use ring::{digest, pbkdf2};
-use salt::{controller::SaltController, model::Salt};
 
 static DIGEST_ALG: &'static digest::Algorithm = &digest::SHA256;
 const CREDENTIAL_LEN: usize = digest::SHA256_OUTPUT_LEN;

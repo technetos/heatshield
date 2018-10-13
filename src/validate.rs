@@ -1,4 +1,4 @@
-use controller::Resource;
+use crate::controller::Resource;
 use rocket_contrib::Json;
 
 pub trait Validator {

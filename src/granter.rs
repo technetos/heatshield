@@ -1,18 +1,21 @@
-use account::controller::AccountController;
-use controller::ResourceController;
+use crate::{
+    account::controller::AccountController,
+    controller::ResourceController,
+    refresh_token::{
+        controller::RefreshTokenController,
+        model::{RefreshToken, RefreshTokenWithId},
+    },
+    schema,
+    token::LoginPayload,
+    user_token::{
+        controller::UserTokenController,
+        model::{UserToken, UserTokenWithId},
+    },
+};
+
 use diesel::ExpressionMethods;
 use jsonwebtoken;
-use refresh_token::{
-    controller::RefreshTokenController,
-    model::{RefreshToken, RefreshTokenWithId},
-};
 use rocket_contrib::{Json, Value, UUID};
-use schema;
-use token::LoginPayload;
-use user_token::{
-    controller::UserTokenController,
-    model::{UserToken, UserTokenWithId},
-};
 use uuid::Uuid;
 
 pub trait Granter {

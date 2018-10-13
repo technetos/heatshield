@@ -1,13 +1,16 @@
-use client::controller::ClientController;
-use controller::ResourceController;
+use crate::{
+    client::controller::ClientController,
+    controller::ResourceController,
+    granter::{grant_token, Granter, Password, Refresh},
+    schema,
+    validate::Validator,
+};
+
 use diesel::ExpressionMethods;
-use granter::{grant_token, Granter, Password, Refresh};
 use jsonwebtoken;
 use rocket_contrib::{Json, Value, UUID};
-use schema;
 use std::error::Error;
 use uuid::Uuid;
-use validate::Validator;
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenPayload {

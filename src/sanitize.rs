@@ -1,4 +1,5 @@
-use controller::{Resource, ResourceWithId};
+use crate::controller::{Resource, ResourceWithId};
+
 use rocket_contrib::Value;
 
 pub trait Sanitizer

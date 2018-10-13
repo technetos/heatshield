@@ -1,12 +1,16 @@
+use crate::{
+    db,
+    salt::model::Salt,
+    schema::{accounts, clients, verifications},
+    validate::Validator,
+    verification::model::Verification,
+};
+
 use chrono::NaiveDateTime;
 use data_encoding;
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
 use rocket_contrib::{Json, Value};
-use salt::model::Salt;
-use schema::{accounts, clients, verifications};
 use uuid::Uuid;
-use validate::Validator;
-use verification::model::Verification;
 
 #[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
 #[belongs_to(Verification)]
@@ -18,7 +22,6 @@ pub struct AccountWithId {
 }
 
 use data_encoding::HEXUPPER;
-use db;
 use ring::{digest, pbkdf2};
 
 static DIGEST_ALG: &'static digest::Algorithm = &digest::SHA256;

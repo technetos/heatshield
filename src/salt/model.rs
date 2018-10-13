@@ -1,5 +1,6 @@
+use crate::schema::salts;
+
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
-use schema::salts;
 
 #[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
 #[table_name = "salts"]

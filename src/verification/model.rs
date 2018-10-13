@@ -1,6 +1,7 @@
+use crate::schema::verifications;
+
 use chrono::NaiveDateTime;
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
-use schema::verifications;
 
 #[derive(Insertable, Queryable, Identifiable, Debug, PartialEq)]
 pub struct Verification {
