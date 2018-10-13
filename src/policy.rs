@@ -1,20 +1,23 @@
-use controller::ResourceController;
+use crate::{
+    refresh_token::{
+        controller::RefreshTokenController,
+        model::{RefreshToken, RefreshTokenWithId},
+    },
+    schema,
+    user_token::{
+        controller::UserTokenController,
+        model::{UserToken, UserTokenWithId},
+    },
+};
+
+use postgres_resource::{self, controller::*};
 use diesel::ExpressionMethods;
 use jsonwebtoken;
-use refresh_token::{
-    controller::RefreshTokenController,
-    model::{RefreshToken, RefreshTokenWithId},
-};
 use rocket::fairing;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
 use rocket::Outcome;
 use rocket_contrib::{Json, Value};
-use schema;
-use user_token::{
-    controller::UserTokenController,
-    model::{UserToken, UserTokenWithId},
-};
 use uuid::Uuid;
 
 pub struct Bearer;

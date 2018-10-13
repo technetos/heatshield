@@ -1,8 +1,8 @@
+use crate::{schema::clients, validate::Validator};
+
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
 use rocket_contrib::{Json, Value};
-use schema::clients;
 use uuid::Uuid;
-use validate::Validator;
 
 #[derive(Serialize, Deserialize, FromSqlRow, Associations, Identifiable, Debug, PartialEq)]
 #[table_name = "clients"]

@@ -1,13 +1,15 @@
-use account::{controller::AccountController, model::Account};
-use controller::ResourceController;
+use crate::{
+    account::{controller::AccountController, model::Account},
+    sanitize::Sanitizer,
+    schema,
+    validate::Validator,
+};
+
+use postgres_resource::{self, controller::*};
 use diesel::prelude::*;
 use rocket_contrib::{Json, Value};
-use sanitize::Sanitizer;
 use std::error::Error;
 use uuid::Uuid;
-use validate::Validator;
-
-use schema;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChangePasswordPayload {

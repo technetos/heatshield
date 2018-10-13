@@ -1,4 +1,11 @@
-use controller::ResourceController;
+use crate::{
+    salt::{
+        controller::SaltController,
+        model::{Salt, SaltWithId},
+    },
+    schema,
+};
+use postgres_resource::{self, controller::*};
 use data_encoding;
 use data_encoding::HEXUPPER;
 use diesel;
@@ -6,11 +13,6 @@ use diesel::ExpressionMethods;
 use diesel::{pg::PgConnection, Connection};
 use ring::rand::{SecureRandom, SystemRandom};
 use ring::{digest, pbkdf2};
-use salt::{
-    controller::SaltController,
-    model::{Salt, SaltWithId},
-};
-use schema;
 use std::{env, error::Error};
 
 static DIGEST_ALG: &'static digest::Algorithm = &digest::SHA256;

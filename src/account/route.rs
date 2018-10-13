@@ -1,16 +1,19 @@
-use account::controller::AccountController;
-use account::{
-    change_password::ChangePasswordPayload,
-    model::{Account, AccountWithId},
+use crate::{
+    account::controller::AccountController,
+    account::{
+        change_password::ChangePasswordPayload,
+        model::{Account, AccountWithId},
+    },
+    policy::Bearer,
+    schema,
+    validate::Validator,
 };
-use controller::ResourceController;
+
+use postgres_resource::{self, controller::*};
 use diesel::ExpressionMethods;
-use policy::Bearer;
 use rocket_contrib::{Json, Value, UUID};
-use schema;
 use std::error::Error;
 use uuid::Uuid;
-use validate::Validator;
 
 #[get("/accounts/<id>", format = "application/json")]
 pub fn get_account(_policy: Bearer, id: UUID) -> Result<Json, Json> {

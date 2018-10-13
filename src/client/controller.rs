@@ -1,6 +1,9 @@
-use client::model::{Client, ClientWithId};
-use controller::{Expr, Resource, ResourceController, ResourceSql, ResourceTable, ResourceWithId};
+use crate::{
+    client::model::{Client, ClientWithId},
+    schema::clients::{table, SqlType},
+};
+
+use postgres_resource::{self, controller::*};
 use diesel::{insert_into, prelude::*, result::Error, update};
-use schema::clients::{table, SqlType};
 
 resource_controller!(Client);

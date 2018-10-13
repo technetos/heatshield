@@ -1,16 +1,19 @@
-use client::{
-    controller::ClientController,
-    model::{Client, ClientWithId},
+use crate::{
+    client::{
+        controller::ClientController,
+        model::{Client, ClientWithId},
+    },
+    policy::Bearer,
+    schema,
+    validate::Validator,
 };
-use controller::ResourceController;
+
+use postgres_resource::{self, controller::*};
 use diesel::ExpressionMethods;
 use jsonwebtoken;
-use policy::Bearer;
 use rocket_contrib::{Json, Value, UUID};
-use schema;
 use std::error::Error;
 use uuid::Uuid;
-use validate::Validator;
 
 #[get("/clients/<id>", format = "application/json")]
 pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Json> {
