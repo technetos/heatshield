@@ -12,15 +12,16 @@ use postgres_resource::{self, controller::*};
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use rocket_contrib::{Json, Value, UUID};
+use rocket::{response::status::Custom, http::Status};
 use std::error::Error;
 use uuid::Uuid;
 
 #[get("/clients/<id>", format = "application/json")]
-pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Json> {
+pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Custom<Json>> {
     let client = ClientController
         .get_one(Box::new(schema::clients::uuid.eq(id.into_inner())))
         .map_err(|e| match e {
-            _ => Json(json!("no client found")),
+            _ => Custom(Status::BadRequest, Json(json!("no client found"))),
         })?
         .client;
 
@@ -34,7 +35,7 @@ pub struct CreateClientPayload {
 }
 
 #[post("/clients", format = "application/json", data = "<payload>")]
-pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Result<Json, Json> {
+pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Result<Json, Custom<Json>> {
     let mut payload = payload.into_inner();
 
     let client = Client {
@@ -48,7 +49,7 @@ pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Res
     let client = ClientController
         .create(&client)
         .map_err(|e| match e {
-            _ => Json(json!("unable to create client")),
+            _ => Custom(Status::InternalServerError, Json(json!("unable to create client"))),
         })?
         .client;
 
