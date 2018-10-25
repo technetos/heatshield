@@ -1,9 +1,7 @@
-use crate::{
-    salt::{controller::SaltController, model::Salt},
-};
+use crate::salt::{controller::SaltController, model::Salt};
 
-use postgres_resource::*;
 use data_encoding;
+use postgres_resource::*;
 use ring::rand::{SecureRandom, SystemRandom};
 use ring::{digest, pbkdf2};
 

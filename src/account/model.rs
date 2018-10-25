@@ -9,6 +9,7 @@ use crate::{
 use chrono::NaiveDateTime;
 use data_encoding;
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
+use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::{Json, Value};
 use uuid::Uuid;
 
@@ -71,17 +72,17 @@ impl Account {
 }
 
 impl Validator for Account {
-    fn validate(&self) -> Result<(), Json> {
+    fn validate(&self) -> Result<(), Custom<Json>> {
         if self.email.is_none() {
-            return Err(Json(json!("email required")));
+            return Err(Custom(Status::BadRequest, Json(json!("email required"))));
         }
 
         if self.username.is_none() {
-            return Err(Json(json!("username required")));
+            return Err(Custom(Status::BadRequest, Json(json!("username required"))));
         }
 
         if self.password.is_none() {
-            return Err(Json(json!("password required")));
+            return Err(Custom(Status::BadRequest, Json(json!("password required"))));
         }
 
         Ok(())

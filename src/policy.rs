@@ -10,9 +10,9 @@ use crate::{
     },
 };
 
-use postgres_resource::{self, controller::*};
 use diesel::ExpressionMethods;
 use jsonwebtoken;
+use postgres_resource::{self, controller::*};
 use rocket::fairing;
 use rocket::http::Status;
 use rocket::request::{self, FromRequest, Request};
@@ -56,7 +56,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
             &jsonwebtoken::Validation::default(),
         )
         .map_err(|e| match e {
-            _ => Err((Status::BadRequest, Json(json!("Invalid token")))),
+            _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
         })?;
 
         let refresh_token = RefreshTokenController
@@ -64,7 +64,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
                 schema::refresh_tokens::uuid.eq(jwt.claims.refresh_id.unwrap()),
             ))
             .map_err(|e| match e {
-                _ => Err((Status::BadRequest, Json(json!("Invalid token")))),
+                _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
             })?
             .refresh_token;
 
@@ -73,7 +73,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
                 schema::user_tokens::refresh_id.eq(refresh_token.uuid),
             ))
             .map_err(|e| match e {
-                _ => Err((Status::BadRequest, Json(json!("Invalid token")))),
+                _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
             })?
             .user_token;
 

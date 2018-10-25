@@ -5,8 +5,9 @@ use crate::{
     validate::Validator,
 };
 
-use postgres_resource::{self, controller::*};
 use diesel::prelude::*;
+use postgres_resource::{self, controller::*};
+use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::{Json, Value};
 use std::error::Error;
 use uuid::Uuid;
@@ -24,11 +25,14 @@ pub struct Password {
 }
 
 impl Validator for ChangePasswordPayload {
-    fn validate(&self) -> Result<(), Json> {
+    fn validate(&self) -> Result<(), Custom<Json>> {
         if self.password.current == self.password.new {
-            Err(Json(json!(
-                "current_password and new_password must not be the same"
-            )))
+            Err(Custom(
+                Status::BadRequest,
+                Json(json!(
+                    "current_password and new_password must not be the same"
+                )),
+            ))
         } else {
             Ok(())
         }
@@ -36,17 +40,20 @@ impl Validator for ChangePasswordPayload {
 }
 
 impl AccountController {
-    pub fn change_password(&self, payload: ChangePasswordPayload) -> Result<Json, Json> {
+    pub fn change_password(&self, payload: ChangePasswordPayload) -> Result<Json, Custom<Json>> {
         let _ = payload.validate()?;
 
         let mut model = self
             .get_one(Box::new(schema::accounts::uuid.eq(payload.account_id)))
-            .map_err(|_| Json(json!("account not found")))?;
+            .map_err(|_| Custom(Status::BadRequest, Json(json!("account not found"))))?;
 
         let mut account = &mut model.account;
 
         if !account.verify_password(&payload.password.current) {
-            Err(Json(json!("invalid current_password")))
+            Err(Custom(
+                Status::Unauthorized,
+                Json(json!("invalid current_password")),
+            ))
         } else {
             account.password = Some(payload.password.current);
 
@@ -55,7 +62,10 @@ impl AccountController {
             let _ = self
                 .update(&account, Box::new(schema::accounts::id.eq(model.id)))
                 .map_err(|e| match e {
-                    _ => Json(json!("unable to update account")),
+                    _ => Custom(
+                        Status::InternalServerError,
+                        Json(json!("unable to update account")),
+                    ),
                 })?;
 
             Ok(Json(json!(true)))

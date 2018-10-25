@@ -1,5 +1,5 @@
-use rocket_contrib::Value;
 use postgres_resource::{self, controller::*};
+use rocket_contrib::Value;
 
 pub trait Sanitizer
 where

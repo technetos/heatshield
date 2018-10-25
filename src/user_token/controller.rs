@@ -3,7 +3,7 @@ use crate::{
     user_token::model::{UserToken, UserTokenWithId},
 };
 
-use postgres_resource::{self, controller::*};
 use diesel::{insert_into, prelude::*, result::Error, update};
+use postgres_resource::{self, controller::*};
 
 resource_controller!(UserToken);

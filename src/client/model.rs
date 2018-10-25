@@ -1,6 +1,7 @@
 use crate::{schema::clients, validate::Validator};
 
 use diesel::{self, Associations, FromSqlRow, Identifiable, Insertable, Queryable};
+use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::{Json, Value};
 use uuid::Uuid;
 
@@ -20,13 +21,13 @@ pub struct Client {
 }
 
 impl Validator for Client {
-    fn validate(&self) -> Result<(), Json> {
+    fn validate(&self) -> Result<(), Custom<Json>> {
         if self.name.is_none() {
-            return Err(Json(json!("name required")));
+            return Err(Custom(Status::BadRequest, Json(json!("name required"))));
         }
 
         if self.email.is_none() {
-            return Err(Json(json!("email required")));
+            return Err(Custom(Status::BadRequest, Json(json!("email required"))));
         }
 
         Ok(())
