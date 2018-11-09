@@ -1,26 +1,22 @@
 use crate::{
-    refresh_token::{
-        controller::RefreshTokenController,
-        model::{RefreshToken, RefreshTokenWithId},
-    },
+    refresh_token::{RefreshToken, RefreshTokenController, RefreshTokenWithId},
     schema,
-    user_token::{
-        controller::UserTokenController,
-        model::{UserToken, UserTokenWithId},
-    },
+    user_token::{UserToken, UserTokenController, UserTokenWithId},
 };
 
 use diesel::ExpressionMethods;
 use jsonwebtoken;
-use postgres_resource::{self, controller::*};
-use rocket::fairing;
-use rocket::http::Status;
-use rocket::request::{self, FromRequest, Request};
-use rocket::Outcome;
+use postgres_resource::ResourceController;
+use rocket::{
+    fairing,
+    http::Status,
+    request::{self, FromRequest, Request},
+    Outcome,
+};
 use rocket_contrib::{Json, Value};
 use uuid::Uuid;
 
-pub struct Bearer;
+pub struct Bearer(UserToken);
 
 fn is_valid(parts: &Vec<&str>) -> bool {
     if let Some(part) = parts.first() {
@@ -60,23 +56,19 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
         })?;
 
         let refresh_token = RefreshTokenController
-            .get_one(Box::new(
-                schema::refresh_tokens::uuid.eq(jwt.claims.refresh_id.unwrap()),
-            ))
+            .get_one(Box::new(schema::refresh_tokens::uuid.eq(jwt.claims.refresh_id.unwrap())))
             .map_err(|e| match e {
                 _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
             })?
             .refresh_token;
 
         let user_token = UserTokenController
-            .get_one(Box::new(
-                schema::user_tokens::refresh_id.eq(refresh_token.uuid),
-            ))
+            .get_one(Box::new(schema::user_tokens::refresh_id.eq(refresh_token.uuid)))
             .map_err(|e| match e {
                 _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
             })?
             .user_token;
 
-        Outcome::Success(Bearer {})
+        Outcome::Success(Bearer(user_token))
     }
 }

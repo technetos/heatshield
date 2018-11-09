@@ -1,6 +1,18 @@
-#![recursion_limit = "512"]
+#![feature(custom_attribute)]
 #![feature(plugin, decl_macro, custom_derive)]
 #![plugin(rocket_codegen)]
+
+macro_rules! err {
+    ($status:expr, $msg:expr) => {
+        Custom($status, Json(json!({ "error_message": $msg })))
+    };
+}
+
+mod result {
+    use rocket::response::status::Custom;
+    use rocket_contrib::Json;
+    pub type WebResult = std::result::Result<Json, Custom<Json>>;
+}
 
 pub const BASEPATH: &'static str = "/heatshield/v1";
 
@@ -9,17 +21,15 @@ extern crate postgres_resource;
 
 pub mod account;
 pub mod client;
-mod db;
 mod granter;
 mod policy;
 
 #[cfg(not(feature = "gensalt"))]
-mod salt;
+pub mod salt;
 #[cfg(feature = "gensalt")]
 pub mod salt;
 
 mod refresh_token;
-mod sanitize;
 mod schema;
 pub mod token;
 mod user_token;

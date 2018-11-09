@@ -2,12 +2,9 @@
 #![plugin(rocket_codegen)]
 
 extern crate heatshield;
-extern crate uuid;
-
 extern crate rocket;
 
 use heatshield::{account, client, token, BASEPATH};
-use uuid::Uuid;
 
 fn main() {
     rocket::ignite()

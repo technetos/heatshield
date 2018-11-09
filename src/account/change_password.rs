@@ -1,12 +1,12 @@
 use crate::{
-    account::{controller::AccountController, model::Account},
-    sanitize::Sanitizer,
+    account::{Account, AccountController},
+    result::WebResult,
     schema,
     validate::Validator,
 };
 
 use diesel::prelude::*;
-use postgres_resource::{self, controller::*};
+use postgres_resource::ResourceController;
 use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::{Json, Value};
 use std::error::Error;
@@ -27,12 +27,7 @@ pub struct Password {
 impl Validator for ChangePasswordPayload {
     fn validate(&self) -> Result<(), Custom<Json>> {
         if self.password.current == self.password.new {
-            Err(Custom(
-                Status::BadRequest,
-                Json(json!(
-                    "current_password and new_password must not be the same"
-                )),
-            ))
+            Err(err!(Status::BadRequest, "current_password and new_password must not be the same"))
         } else {
             Ok(())
         }
@@ -40,33 +35,27 @@ impl Validator for ChangePasswordPayload {
 }
 
 impl AccountController {
-    pub fn change_password(&self, payload: ChangePasswordPayload) -> Result<Json, Custom<Json>> {
+    pub fn change_password(&self, payload: ChangePasswordPayload) -> WebResult {
         let _ = payload.validate()?;
 
         let mut model = self
             .get_one(Box::new(schema::accounts::uuid.eq(payload.account_id)))
-            .map_err(|_| Custom(Status::BadRequest, Json(json!("account not found"))))?;
+            .map_err(|_| err!(Status::BadRequest, "account not found"))?;
 
-        let mut account = &mut model.account;
+        let account = &mut model.account;
 
         if !account.verify_password(&payload.password.current) {
-            Err(Custom(
-                Status::Unauthorized,
-                Json(json!("invalid current_password")),
-            ))
+            Err(err!(Status::Unauthorized, "invalid current_password"))
         } else {
             account.password = Some(payload.password.current);
 
             account.hash_password();
 
-            let _ = self
-                .update(&account, Box::new(schema::accounts::id.eq(model.id)))
-                .map_err(|e| match e {
-                    _ => Custom(
-                        Status::InternalServerError,
-                        Json(json!("unable to update account")),
-                    ),
-                })?;
+            let _ = self.update(&account, Box::new(schema::accounts::id.eq(model.id))).map_err(
+                |e| match e {
+                    _ => err!(Status::InternalServerError, "unable to update account"),
+                },
+            )?;
 
             Ok(Json(json!(true)))
         }

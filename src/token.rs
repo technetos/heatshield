@@ -1,13 +1,14 @@
 use crate::{
-    client::controller::ClientController,
+    client::ClientController,
     granter::{grant_token, Granter, Password, Refresh},
+    result::WebResult,
     schema,
     validate::Validator,
 };
 
 use diesel::ExpressionMethods;
 use jsonwebtoken;
-use postgres_resource::{self, controller::*};
+use postgres_resource::ResourceController;
 use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::{Json, Value, UUID};
 use std::error::Error;
@@ -25,41 +26,23 @@ pub struct TokenPayload {
 impl Validator for TokenPayload {
     fn validate(&self) -> Result<(), Custom<Json>> {
         if self.client_id.is_none() {
-            return Err(Custom(
-                Status::BadRequest,
-                Json(json!("client_id required")),
-            ));
+            return Err(err!(Status::BadRequest, "client_id required"));
         }
-
         if self.grant_type.is_none() {
-            return Err(Custom(
-                Status::BadRequest,
-                Json(json!("grant_type required")),
-            ));
+            return Err(err!(Status::BadRequest, "grant_type required"));
         }
-
         match &self.grant_type.as_ref().unwrap()[..] {
             "password" if self.credentials.is_none() => {
-                return Err(Custom(
-                    Status::BadRequest,
-                    Json(json!("credentials required")),
-                ));
+                return Err(err!(Status::BadRequest, "credentials required"));
             }
             "refresh_token" if self.refresh_id.is_none() => {
-                return Err(Custom(
-                    Status::BadRequest,
-                    Json(json!("refresh_id required")),
-                ));
+                return Err(err!(Status::BadRequest, "refresh_id required"));
             }
             "refresh_token" if self.account_id.is_none() => {
-                return Err(Custom(
-                    Status::BadRequest,
-                    Json(json!("account_id required")),
-                ));
+                return Err(err!(Status::BadRequest, "account_id required"));
             }
             _ => {}
         }
-
         Ok(())
     }
 }
@@ -71,28 +54,26 @@ pub struct LoginPayload {
 }
 
 #[post("/token", format = "application/json", data = "<payload>")]
-pub fn get_token(payload: Json<TokenPayload>) -> Result<Json, Custom<Json>> {
-    let mut payload = payload.into_inner();
+pub fn get_token(payload: Json<TokenPayload>) -> WebResult {
+    let payload = payload.into_inner();
 
     let _ = payload.validate()?;
 
     let client = ClientController
-        .get_one(Box::new(
-            schema::clients::uuid.eq(payload.client_id.unwrap()),
-        ))
-        .map_err(|_| Custom(Status::BadRequest, Json(json!("invalid client"))))?
+        .get_one(Box::new(schema::clients::uuid.eq(payload.client_id.unwrap())))
+        .map_err(|_| err!(Status::BadRequest, "invalid client"))?
         .client;
 
     match &payload.grant_type.unwrap()[..] {
-        "password" => grant_token(Password::new(client.uuid, payload.credentials.unwrap())),
-        "refresh_token" => grant_token(Refresh::new(
-            client.uuid,
-            payload.account_id.unwrap(),
-            payload.refresh_id.unwrap(),
-        )),
-        _ => Err(Custom(
-            Status::BadRequest,
-            Json(json!("invalid grant_type")),
-        )),
+        "password" => {
+            let credentials = payload.credentials.unwrap();
+            grant_token(Password::new(client.uuid, credentials))
+        }
+        "refresh_token" => {
+            let account_id = payload.account_id.unwrap();
+            let refresh_id = payload.refresh_id.unwrap();
+            grant_token(Refresh::new(client.uuid, account_id, refresh_id))
+        }
+        _ => Err(err!(Status::BadRequest, "invalid grant_type")),
     }
 }

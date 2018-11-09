@@ -1,16 +1,14 @@
 use crate::{
-    client::{
-        controller::ClientController,
-        model::{Client, ClientWithId},
-    },
+    client::{Client, ClientController, ClientWithId},
     policy::Bearer,
+    result::WebResult,
     schema,
     validate::Validator,
 };
 
 use diesel::ExpressionMethods;
 use jsonwebtoken;
-use postgres_resource::{self, controller::*};
+use postgres_resource::ResourceController;
 use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::{Json, Value, UUID};
 use std::error::Error;
@@ -21,7 +19,7 @@ pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Custom<Json>> {
     let client = ClientController
         .get_one(Box::new(schema::clients::uuid.eq(id.into_inner())))
         .map_err(|e| match e {
-            _ => Custom(Status::BadRequest, Json(json!("no client found"))),
+            _ => err!(Status::BadRequest, "no client found"),
         })?
         .client;
 
@@ -35,27 +33,18 @@ pub struct CreateClientPayload {
 }
 
 #[post("/clients", format = "application/json", data = "<payload>")]
-pub fn create_client(
-    _policy: Bearer,
-    payload: Json<CreateClientPayload>,
-) -> Result<Json, Custom<Json>> {
-    let mut payload = payload.into_inner();
+pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> WebResult {
+    let payload = payload.into_inner();
 
-    let client = Client {
-        email: Some(payload.email),
-        name: Some(payload.name),
-        uuid: Uuid::new_v4(),
-    };
+    let client =
+        Client { email: Some(payload.email), name: Some(payload.name), uuid: Uuid::new_v4() };
 
     client.validate()?;
 
     let client = ClientController
         .create(&client)
         .map_err(|e| match e {
-            _ => Custom(
-                Status::InternalServerError,
-                Json(json!("unable to create client")),
-            ),
+            _ => err!(Status::InternalServerError, "unable to create client"),
         })?
         .client;
 
