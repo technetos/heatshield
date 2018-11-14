@@ -1,4 +1,4 @@
-use crate::salt::{controller::SaltController, model::Salt};
+use crate::salt::{SaltController, Salt};
 
 use data_encoding;
 use postgres_resource::*;
