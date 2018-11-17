@@ -9,10 +9,10 @@ use crate::{
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
-use rocket::{http::Status, response::status::Custom};
-use rocket_contrib::{Json, Value, UUID};
+use rocket::{http::Status, response::status::Custom, post};
+use rocket_contrib::json::{Json, JsonValue};
 use std::error::Error;
-use uuid::Uuid;
+use compat_uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenPayload {
@@ -24,7 +24,7 @@ pub struct TokenPayload {
 }
 
 impl Validator for TokenPayload {
-    fn validate(&self) -> Result<(), Custom<Json>> {
+    fn validate(&self) -> Result<(), Custom<JsonValue>> {
         if self.client_id.is_none() {
             return Err(err!(Status::BadRequest, "client_id required"));
         }

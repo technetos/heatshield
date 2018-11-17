@@ -13,8 +13,8 @@ use rocket::{
     request::{self, FromRequest, Request},
     Outcome,
 };
-use rocket_contrib::{Json, Value};
-use uuid::Uuid;
+use rocket_contrib::json::JsonValue;
+use compat_uuid::Uuid;
 
 pub struct Bearer(UserToken);
 
@@ -26,13 +26,13 @@ fn is_valid(parts: &Vec<&str>) -> bool {
 }
 
 impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
-    type Error = Json;
+    type Error = JsonValue;
 
-    fn from_request(request: &'a Request<'r>) -> request::Outcome<Bearer, Json> {
+    fn from_request(request: &'a Request<'r>) -> request::Outcome<Bearer, JsonValue> {
         let keys: Vec<_> = request.headers().get("authorization").collect();
 
         if keys.len() != 1 {
-            return Outcome::Failure((Status::BadRequest, Json(json!({}))));
+            return Outcome::Failure((Status::BadRequest, json!({})));
         }
 
         let parts: Vec<&str> = keys[0].split(" ").collect();
@@ -40,7 +40,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
         if !is_valid(&parts) {
             return Outcome::Failure((
                 Status::BadRequest,
-                Json(json!("Invalid authorization scheme")),
+                json!("Invalid authorization scheme"),
             ));
         }
 
@@ -52,20 +52,20 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
             &jsonwebtoken::Validation::default(),
         )
         .map_err(|e| match e {
-            _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
+            _ => Err((Status::Unauthorized, json!("Invalid token"))),
         })?;
 
         let refresh_token = RefreshTokenController
             .get_one(Box::new(schema::refresh_tokens::uuid.eq(jwt.claims.refresh_id.unwrap())))
             .map_err(|e| match e {
-                _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
+                _ => Err((Status::Unauthorized, json!("Invalid token"))),
             })?
             .refresh_token;
 
         let user_token = UserTokenController
             .get_one(Box::new(schema::user_tokens::refresh_id.eq(refresh_token.uuid)))
             .map_err(|e| match e {
-                _ => Err((Status::Unauthorized, Json(json!("Invalid token")))),
+                _ => Err((Status::Unauthorized, json!("Invalid token"))),
             })?
             .user_token;
 

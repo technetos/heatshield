@@ -11,8 +11,8 @@ use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
 use rocket::{http::Status, response::status::Custom, Response};
-use rocket_contrib::{Json, Value, UUID};
-use uuid::Uuid;
+use rocket_contrib::{uuid::Uuid as rocketUuid, json::JsonValue};
+use compat_uuid::Uuid;
 
 pub trait Granter {
     fn grant_token(self) -> WebResult;
@@ -50,7 +50,7 @@ impl<'a> Granter for Password {
         }
 
         let refresh_token = RefreshTokenController
-            .create(&RefreshToken { uuid: Uuid::new_v4() })
+            .create(&RefreshToken { uuid: Uuid::from(Uuid::new()) })
             .map_err(|e| match e {
                 _ => err!(Status::InternalServerError, "error creating refresh token"),
             })?
@@ -72,7 +72,7 @@ impl<'a> Granter for Password {
                 _ => err!(Status::InternalServerError, "error creating jsonwebtoken"),
             })?;
 
-        Ok(Json(json!(format!("Bearer {}", jwt))))
+        Ok(json!(format!("Bearer {}", jwt)))
     }
 }
 
@@ -120,6 +120,6 @@ impl Granter for Refresh {
                 _ => err!(Status::InternalServerError, "error creating jsonwebtoken"),
             })?;
 
-        Ok(Json(json!(format!("Bearer {}", jwt))))
+        Ok(json!(format!("Bearer {}", jwt)))
     }
 }

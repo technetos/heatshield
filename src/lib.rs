@@ -1,17 +1,15 @@
-#![feature(custom_attribute)]
-#![feature(plugin, decl_macro, custom_derive)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
 
 macro_rules! err {
     ($status:expr, $msg:expr) => {
-        Custom($status, Json(json!({ "error_message": $msg })))
+        Custom($status, json!({ "error_message": $msg }))
     };
 }
 
 mod result {
     use rocket::response::status::Custom;
-    use rocket_contrib::Json;
-    pub type WebResult = std::result::Result<Json, Custom<Json>>;
+    use rocket_contrib::json::JsonValue;
+    pub type WebResult = std::result::Result<JsonValue, Custom<JsonValue>>;
 }
 
 pub const BASEPATH: &'static str = "/heatshield/v1";

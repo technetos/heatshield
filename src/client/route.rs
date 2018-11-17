@@ -9,21 +9,21 @@ use crate::{
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
-use rocket::{http::Status, response::status::Custom};
-use rocket_contrib::{Json, Value, UUID};
+use rocket::{http::Status, response::status::Custom, get, post};
+use rocket_contrib::{uuid::Uuid as rocketUuid, json::{Json, JsonValue}};
+use compat_uuid::Uuid;
 use std::error::Error;
-use uuid::Uuid;
 
 #[get("/clients/<id>", format = "application/json")]
-pub fn get_client(_policy: Bearer, id: UUID) -> Result<Json, Custom<Json>> {
+pub fn get_client(_policy: Bearer, id: rocketUuid) -> WebResult {
     let client = ClientController
-        .get_one(Box::new(schema::clients::uuid.eq(id.into_inner())))
+        .get_one(Box::new(schema::clients::uuid.eq(Uuid::from(id))))
         .map_err(|e| match e {
             _ => err!(Status::BadRequest, "no client found"),
         })?
         .client;
 
-    Ok(Json(json!({ "model": client })))
+    Ok(json!({ "model": client }))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -37,7 +37,7 @@ pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Web
     let payload = payload.into_inner();
 
     let client =
-        Client { email: Some(payload.email), name: Some(payload.name), uuid: Uuid::new_v4() };
+        Client { email: Some(payload.email), name: Some(payload.name), uuid: Uuid::new() };
 
     client.validate()?;
 
@@ -48,5 +48,5 @@ pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Web
         })?
         .client;
 
-    Ok(Json(json!({ "model": client })))
+    Ok(json!({ "model": client }))
 }

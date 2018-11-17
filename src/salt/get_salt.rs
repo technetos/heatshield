@@ -11,10 +11,12 @@ impl SaltController {
             .salt
             .salt;
 
-        let mut res = Vec::with_capacity(username.as_bytes().len() + db_salt.as_bytes().len());
+        let salt_bytes = db_salt.as_bytes();
+        let username_bytes = username.as_bytes();
 
-        res.extend(db_salt.as_bytes());
-        res.extend(username.as_bytes());
+        let mut res = Vec::with_capacity(username_bytes.len() + salt_bytes.len());
+        res.extend(salt_bytes);
+        res.extend(username_bytes);
 
         Ok(res)
     }

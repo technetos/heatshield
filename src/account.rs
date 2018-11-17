@@ -5,9 +5,9 @@ use diesel::{
     Insertable, Queryable,
 };
 use postgres_resource::*;
+use compat_uuid::Uuid;
 use rocket::{http::Status, response::status::Custom};
-use rocket_contrib::{Json, Value};
-use uuid::Uuid;
+use rocket_contrib::json::JsonValue;
 
 #[resource(schema = accounts, table = "accounts")]
 struct Account {
@@ -29,7 +29,7 @@ struct Account {
 }
 
 impl Validator for Account {
-    fn validate(&self) -> Result<(), Custom<Json>> {
+    fn validate(&self) -> Result<(), Custom<JsonValue>> {
         if self.email.is_none() {
             return Err(err!(Status::BadRequest, "email required"));
         }

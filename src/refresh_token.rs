@@ -5,7 +5,7 @@ use diesel::{
     Insertable, Queryable,
 };
 use postgres_resource::*;
-use uuid::Uuid;
+use compat_uuid::Uuid;
 
 #[resource(schema = refresh_tokens, table = "refresh_tokens")]
 struct RefreshToken {

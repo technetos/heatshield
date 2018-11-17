@@ -7,10 +7,10 @@ use crate::{
 
 use diesel::prelude::*;
 use postgres_resource::ResourceController;
+use compat_uuid::Uuid;
 use rocket::{http::Status, response::status::Custom};
-use rocket_contrib::{Json, Value};
+use rocket_contrib::json::JsonValue;
 use std::error::Error;
-use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChangePasswordPayload {
@@ -25,7 +25,7 @@ pub struct Password {
 }
 
 impl Validator for ChangePasswordPayload {
-    fn validate(&self) -> Result<(), Custom<Json>> {
+    fn validate(&self) -> Result<(), Custom<JsonValue>> {
         if self.password.current == self.password.new {
             Err(err!(Status::BadRequest, "current_password and new_password must not be the same"))
         } else {
@@ -57,7 +57,7 @@ impl AccountController {
                 },
             )?;
 
-            Ok(Json(json!(true)))
+            Ok(json!(true))
         }
     }
 }

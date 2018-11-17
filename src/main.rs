@@ -1,8 +1,5 @@
-#![feature(plugin, decl_macro)]
-#![plugin(rocket_codegen)]
-
-extern crate heatshield;
-extern crate rocket;
+#![feature(proc_macro_hygiene, decl_macro, custom_derive, custom_attribute)]
+#[macro_use] extern crate rocket;
 
 use heatshield::{account, client, token, BASEPATH};
 

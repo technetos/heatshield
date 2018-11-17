@@ -6,8 +6,8 @@ use diesel::{
 };
 use postgres_resource::*;
 use rocket::{http::Status, response::status::Custom};
-use rocket_contrib::{Json, Value};
-use uuid::Uuid;
+use rocket_contrib::json::JsonValue;
+use compat_uuid::Uuid;
 
 #[resource(schema = clients, table = "clients")]
 struct Client {
@@ -21,13 +21,13 @@ struct Client {
 }
 
 impl Validator for Client {
-    fn validate(&self) -> Result<(), Custom<Json>> {
+    fn validate(&self) -> Result<(), Custom<JsonValue>> {
         if self.name.is_none() {
-            return Err(Custom(Status::BadRequest, Json(json!("name required"))));
+            return Err(Custom(Status::BadRequest, json!("name required")));
         }
 
         if self.email.is_none() {
-            return Err(Custom(Status::BadRequest, Json(json!("email required"))));
+            return Err(Custom(Status::BadRequest, json!("email required")));
         }
 
         Ok(())
