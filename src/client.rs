@@ -1,7 +1,7 @@
 use crate::{schema::clients, validate::Validator};
 
 use diesel::{
-    self, insert_into, prelude::*, result::Error, update, Associations, FromSqlRow, Identifiable,
+    self, delete, insert_into, prelude::*, result::Error, update, Associations, FromSqlRow, Identifiable,
     Insertable, Queryable,
 };
 use postgres_resource::*;
