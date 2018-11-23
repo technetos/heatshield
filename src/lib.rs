@@ -22,7 +22,7 @@ pub mod client;
 mod granter;
 mod jwt;
 pub mod logout;
-mod policy;
+pub mod policy;
 
 #[cfg(not(feature = "gensalt"))]
 pub mod salt;
