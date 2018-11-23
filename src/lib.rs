@@ -6,7 +6,7 @@ macro_rules! err {
     };
 }
 
-mod result {
+pub mod result {
     use rocket::response::status::Custom;
     use rocket_contrib::json::JsonValue;
     pub type WebResult = std::result::Result<JsonValue, Custom<JsonValue>>;

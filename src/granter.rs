@@ -4,7 +4,7 @@ use crate::{
     jwt::JWT,
     refresh_token::{RefreshToken, RefreshTokenController, RefreshTokenWithId},
     result::WebResult,
-    schema,
+    schema::{access_tokens, accounts, refresh_tokens, user_tokens},
     token::LoginPayload,
     user_token::{UserToken, UserTokenController, UserTokenWithId},
 };
@@ -44,9 +44,7 @@ impl Password {
 impl<'a> Granter for Password {
     fn grant_token(self) -> WebResult {
         let account = AccountController
-            .get_one(Box::new(
-                schema::accounts::username.eq(self.credentials.username),
-            ))
+            .get_one(Box::new(accounts::username.eq(self.credentials.username)))
             .map_err(|e| err!(Status::Unauthorized, "invalid credentials"))?
             .account;
 
@@ -110,15 +108,8 @@ impl Refresh {
 
 impl Granter for Refresh {
     fn grant_token(self) -> WebResult {
-        let refresh_token = RefreshTokenController
-            .get_one(Box::new(schema::refresh_tokens::uuid.eq(self.refresh_id)))
-            .map_err(|_| err!(Status::BadRequest, "invalid refresh token"))?
-            .refresh_token;
-
         let mut existing_user_token = UserTokenController
-            .get_one(Box::new(
-                schema::user_tokens::refresh_id.eq(refresh_token.uuid),
-            ))
+            .get_one(Box::new(user_tokens::refresh_id.eq(self.refresh_id)))
             .map_err(|_| err!(Status::Unauthorized, json!("Invalid refresh token")))?;
 
         let new_refresh_token = RefreshTokenController
@@ -131,7 +122,7 @@ impl Granter for Refresh {
         let updated_user_token = UserTokenController
             .update(
                 &existing_user_token.user_token,
-                Box::new(schema::user_tokens::id.eq(existing_user_token.id)),
+                Box::new(user_tokens::id.eq(existing_user_token.id)),
             )
             .map_err(|_| err!(Status::InternalServerError, "error updating user token"))?;
 
