@@ -1,9 +1,12 @@
 use crate::{
+    access_token::{AccessToken, AccessTokenController, AccessTokenWithId},
+    jwt::JWT,
     refresh_token::{RefreshToken, RefreshTokenController, RefreshTokenWithId},
     schema,
     user_token::{UserToken, UserTokenController, UserTokenWithId},
 };
 
+use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
@@ -14,9 +17,8 @@ use rocket::{
     Outcome,
 };
 use rocket_contrib::json::JsonValue;
-use compat_uuid::Uuid;
 
-pub struct Bearer(UserToken);
+pub struct Bearer(pub UserTokenWithId);
 
 fn is_valid(parts: &Vec<&str>) -> bool {
     if let Some(part) = parts.first() {
@@ -38,36 +40,29 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
         let parts: Vec<&str> = keys[0].split(" ").collect();
 
         if !is_valid(&parts) {
-            return Outcome::Failure((
-                Status::BadRequest,
-                json!("Invalid authorization scheme"),
-            ));
+            return Outcome::Failure((Status::BadRequest, json!("Invalid authorization scheme")));
         }
 
-        let token = parts[1];
+        let token = String::from(parts[1]);
 
-        let jwt = jsonwebtoken::decode::<UserToken>(
-            token,
-            b"secret",
+        let jwt = jsonwebtoken::decode::<JWT>(
+            &token,
+            "secret".as_ref(),
             &jsonwebtoken::Validation::default(),
         )
         .map_err(|e| match e {
-            _ => Err((Status::Unauthorized, json!("Invalid token"))),
+            _ => Err((Status::Unauthorized, json!("Invalid access token"))),
         })?;
 
-        let refresh_token = RefreshTokenController
-            .get_one(Box::new(schema::refresh_tokens::uuid.eq(jwt.claims.refresh_id.unwrap())))
-            .map_err(|e| match e {
-                _ => Err((Status::Unauthorized, json!("Invalid token"))),
-            })?
-            .refresh_token;
+        let access_token = AccessTokenController
+            .get_one(Box::new(schema::access_tokens::jwt.eq(token)))
+            .map_err(|_| Err((Status::Unauthorized, json!("Invalid access token"))))?;
 
         let user_token = UserTokenController
-            .get_one(Box::new(schema::user_tokens::refresh_id.eq(refresh_token.uuid)))
-            .map_err(|e| match e {
-                _ => Err((Status::Unauthorized, json!("Invalid token"))),
-            })?
-            .user_token;
+            .get_one(Box::new(
+                schema::user_tokens::id.eq(access_token.access_token.user_id),
+            ))
+            .map_err(|_| Err((Status::Unauthorized, json!("Invalid access token"))))?;
 
         Outcome::Success(Bearer(user_token))
     }

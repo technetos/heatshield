@@ -5,9 +5,9 @@ use crate::{
     validate::Validator,
 };
 
+use compat_uuid::Uuid;
 use diesel::prelude::*;
 use postgres_resource::ResourceController;
-use compat_uuid::Uuid;
 use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::json::JsonValue;
 use std::error::Error;
@@ -27,7 +27,10 @@ pub struct Password {
 impl Validator for ChangePasswordPayload {
     fn validate(&self) -> Result<(), Custom<JsonValue>> {
         if self.password.current == self.password.new {
-            Err(err!(Status::BadRequest, "current_password and new_password must not be the same"))
+            Err(err!(
+                Status::BadRequest,
+                "current_password and new_password must not be the same"
+            ))
         } else {
             Ok(())
         }
@@ -51,11 +54,11 @@ impl AccountController {
 
             account.hash_password();
 
-            let _ = self.update(&account, Box::new(schema::accounts::id.eq(model.id))).map_err(
-                |e| match e {
+            let _ = self
+                .update(&account, Box::new(schema::accounts::id.eq(model.id)))
+                .map_err(|e| match e {
                     _ => err!(Status::InternalServerError, "unable to update account"),
-                },
-            )?;
+                })?;
 
             Ok(json!(true))
         }

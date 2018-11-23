@@ -1,13 +1,13 @@
 use crate::{schema::clients, validate::Validator};
 
+use compat_uuid::Uuid;
 use diesel::{
-    self, delete, insert_into, prelude::*, result::Error, update, Associations, FromSqlRow, Identifiable,
-    Insertable, Queryable,
+    self, delete, insert_into, prelude::*, result::Error, update, Associations, FromSqlRow,
+    Identifiable, Insertable, Queryable,
 };
 use postgres_resource::*;
 use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::json::JsonValue;
-use compat_uuid::Uuid;
 
 #[resource(schema = clients, table = "clients")]
 struct Client {

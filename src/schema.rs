@@ -1,6 +1,17 @@
 table! {
     use diesel::sql_types::*;
 
+    access_tokens (id) {
+        id -> Int4,
+        jwt -> Text,
+        expires_in -> Int4,
+        user_id -> Int4,
+    }
+}
+
+table! {
+    use diesel::sql_types::*;
+
     accounts (id) {
         id -> Int4,
         uuid -> Nullable<Uuid>,
@@ -64,6 +75,7 @@ table! {
 joinable!(accounts -> verifications (verification_id));
 
 allow_tables_to_appear_in_same_query!(
+    access_tokens,
     accounts,
     clients,
     refresh_tokens,

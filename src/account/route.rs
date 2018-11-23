@@ -6,11 +6,14 @@ use crate::{
     validate::Validator,
 };
 
+use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use postgres_resource::ResourceController;
-use compat_uuid::Uuid;
-use rocket::{http::Status, response::status::Custom, get, put, post};
-use rocket_contrib::{uuid::Uuid as rocketUuid, json::{Json, JsonValue}};
+use rocket::{get, http::Status, post, put, response::status::Custom};
+use rocket_contrib::{
+    json::{Json, JsonValue},
+    uuid::Uuid as rocketUuid,
+};
 use std::error::Error;
 
 #[get("/accounts/<id>", format = "application/json")]

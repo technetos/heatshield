@@ -9,7 +9,9 @@ type Credential = [u8; CREDENTIAL_LEN];
 
 impl Account {
     pub fn verify_password(&self, current_pw: &str) -> bool {
-        let pw_salt = SaltController.get_salt(self.email.as_ref().unwrap()).unwrap();
+        let pw_salt = SaltController
+            .get_salt(self.email.as_ref().unwrap())
+            .unwrap();
         let mut actual: Credential = [0u8; CREDENTIAL_LEN];
 
         pbkdf2::derive(

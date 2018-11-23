@@ -9,7 +9,9 @@ type Credential = [u8; CREDENTIAL_LEN];
 
 impl Account {
     pub fn hash_password(&mut self) {
-        let salt = SaltController.get_salt(&self.email.as_ref().unwrap().clone()).unwrap();
+        let salt = SaltController
+            .get_salt(&self.email.as_ref().unwrap().clone())
+            .unwrap();
         let mut hash_result: Credential = [0u8; CREDENTIAL_LEN];
 
         pbkdf2::derive(

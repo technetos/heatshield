@@ -1,13 +1,15 @@
 #![feature(proc_macro_hygiene, decl_macro, custom_derive, custom_attribute)]
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 
-use heatshield::{account, client, token, BASEPATH};
+use heatshield::{account, client, logout, token, BASEPATH};
 
 fn main() {
     rocket::ignite()
         .mount(
             BASEPATH,
             routes![
+                logout::logout,
                 token::get_token,
                 account::route::change_password,
                 account::route::update_account,

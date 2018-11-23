@@ -6,12 +6,15 @@ use crate::{
     validate::Validator,
 };
 
+use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
-use rocket::{http::Status, response::status::Custom, get, post};
-use rocket_contrib::{uuid::Uuid as rocketUuid, json::{Json, JsonValue}};
-use compat_uuid::Uuid;
+use rocket::{get, http::Status, post, response::status::Custom};
+use rocket_contrib::{
+    json::{Json, JsonValue},
+    uuid::Uuid as rocketUuid,
+};
 use std::error::Error;
 
 #[get("/clients/<id>", format = "application/json")]
@@ -36,8 +39,11 @@ pub struct CreateClientPayload {
 pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> WebResult {
     let payload = payload.into_inner();
 
-    let client =
-        Client { email: Some(payload.email), name: Some(payload.name), uuid: Uuid::new() };
+    let client = Client {
+        email: Some(payload.email),
+        name: Some(payload.name),
+        uuid: Uuid::new(),
+    };
 
     client.validate()?;
 

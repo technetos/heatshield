@@ -6,19 +6,18 @@ use crate::{
     validate::Validator,
 };
 
+use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
-use rocket::{http::Status, response::status::Custom, post};
+use rocket::{http::Status, post, response::status::Custom};
 use rocket_contrib::json::{Json, JsonValue};
 use std::error::Error;
-use compat_uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenPayload {
     client_id: Option<Uuid>,
     refresh_id: Option<Uuid>,
-    account_id: Option<Uuid>,
     grant_type: Option<String>,
     credentials: Option<LoginPayload>,
 }
@@ -33,13 +32,10 @@ impl Validator for TokenPayload {
         }
         match &self.grant_type.as_ref().unwrap()[..] {
             "password" if self.credentials.is_none() => {
-                return Err(err!(Status::BadRequest, "credentials required"));
+                return Err(err!(Status::BadRequest, "user credentials required"));
             }
             "refresh_token" if self.refresh_id.is_none() => {
                 return Err(err!(Status::BadRequest, "refresh_id required"));
-            }
-            "refresh_token" if self.account_id.is_none() => {
-                return Err(err!(Status::BadRequest, "account_id required"));
             }
             _ => {}
         }
@@ -60,7 +56,9 @@ pub fn get_token(payload: Json<TokenPayload>) -> WebResult {
     let _ = payload.validate()?;
 
     let client = ClientController
-        .get_one(Box::new(schema::clients::uuid.eq(payload.client_id.unwrap())))
+        .get_one(Box::new(
+            schema::clients::uuid.eq(payload.client_id.unwrap()),
+        ))
         .map_err(|_| err!(Status::BadRequest, "invalid client"))?
         .client;
 
@@ -70,9 +68,8 @@ pub fn get_token(payload: Json<TokenPayload>) -> WebResult {
             grant_token(Password::new(client.uuid, credentials))
         }
         "refresh_token" => {
-            let account_id = payload.account_id.unwrap();
             let refresh_id = payload.refresh_id.unwrap();
-            grant_token(Refresh::new(client.uuid, account_id, refresh_id))
+            grant_token(Refresh::new(client.uuid, refresh_id))
         }
         _ => Err(err!(Status::BadRequest, "invalid grant_type")),
     }

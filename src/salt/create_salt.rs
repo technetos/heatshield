@@ -1,4 +1,4 @@
-use crate::salt::{SaltController, Salt};
+use crate::salt::{Salt, SaltController};
 
 use data_encoding;
 use postgres_resource::*;
@@ -15,6 +15,8 @@ impl SaltController {
     pub fn create_salt(&self) {
         let mut v = [0u8; CREDENTIAL_LEN];
         let _ = SystemRandom.fill(&mut v);
-        self.create(&Salt { salt: data_encoding::HEXUPPER.encode(&v[..]) });
+        self.create(&Salt {
+            salt: data_encoding::HEXUPPER.encode(&v[..]),
+        });
     }
 }
