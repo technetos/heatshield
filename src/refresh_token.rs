@@ -3,11 +3,11 @@ use crate::schema::refresh_tokens;
 use compat_uuid::Uuid;
 use diesel::{
     self, delete, insert_into, prelude::*, result::Error, update, Associations, FromSqlRow,
-    Identifiable, Insertable, Queryable,
+    Identifiable, Insertable,
 };
 use postgres_resource::*;
 
-#[resource(schema = refresh_tokens, table = "refresh_tokens")]
+#[resource]
 struct RefreshToken {
     uuid: Uuid,
 }

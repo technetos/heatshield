@@ -1,5 +1,4 @@
-use chrono::{FixedOffset, TimeZone, Utc};
-use crate::user_token::UserToken;
+use chrono::{FixedOffset, Utc};
 use jsonwebtoken;
 
 #[derive(Serialize, Deserialize, Debug)]

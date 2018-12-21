@@ -8,7 +8,7 @@ impl SaltController {
         let db_salt = self
             .get_one(Box::new(schema::salts::id.eq(1)))
             .map_err(|_| panic!("No salt found"))?
-            .salt
+            .inner
             .salt;
 
         let salt_bytes = db_salt.as_bytes();

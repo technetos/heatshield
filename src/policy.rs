@@ -1,17 +1,14 @@
 use crate::{
-    access_token::{AccessToken, AccessTokenController, AccessTokenWithId},
+    access_token::AccessTokenController,
     jwt::JWT,
-    refresh_token::{RefreshToken, RefreshTokenController, RefreshTokenWithId},
     schema,
-    user_token::{UserToken, UserTokenController, UserTokenWithId},
+    user_token::{UserTokenController, UserTokenWithId},
 };
 
-use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
 use rocket::{
-    fairing,
     http::Status,
     request::{self, FromRequest, Request},
     Outcome,
@@ -45,7 +42,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
 
         let token = String::from(parts[1]);
 
-        let jwt = jsonwebtoken::decode::<JWT>(
+        let _jwt = jsonwebtoken::decode::<JWT>(
             &token,
             "secret".as_ref(),
             &jsonwebtoken::Validation::default(),
@@ -60,7 +57,7 @@ impl<'a, 'r> FromRequest<'a, 'r> for Bearer {
 
         let user_token = UserTokenController
             .get_one(Box::new(
-                schema::user_tokens::id.eq(access_token.access_token.user_id),
+                schema::user_tokens::id.eq(access_token.inner.user_id),
             ))
             .map_err(|_| Err((Status::Unauthorized, json!("Invalid access token"))))?;
 

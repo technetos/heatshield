@@ -1,16 +1,10 @@
-use crate::{
-    account::{Account, AccountController},
-    result::WebResult,
-    schema,
-    validate::Validator,
-};
+use crate::{account::AccountController, result::WebResult, schema, validate::Validator};
 
 use compat_uuid::Uuid;
 use diesel::prelude::*;
 use postgres_resource::ResourceController;
 use rocket::{http::Status, response::status::Custom};
 use rocket_contrib::json::JsonValue;
-use std::error::Error;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ChangePasswordPayload {
@@ -45,7 +39,7 @@ impl AccountController {
             .get_one(Box::new(schema::accounts::uuid.eq(payload.account_id)))
             .map_err(|_| err!(Status::BadRequest, "account not found"))?;
 
-        let account = &mut model.account;
+        let account = &mut model.inner;
 
         if !account.verify_password(&payload.password.current) {
             Err(err!(Status::Unauthorized, "invalid current_password"))

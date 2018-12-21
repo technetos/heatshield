@@ -1,5 +1,5 @@
 use crate::{
-    client::{Client, ClientController, ClientWithId},
+    client::{Client, ClientController},
     policy::Bearer,
     result::WebResult,
     schema,
@@ -11,11 +11,7 @@ use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
 use rocket::{get, http::Status, post, response::status::Custom};
-use rocket_contrib::{
-    json::{Json, JsonValue},
-    uuid::Uuid as rocketUuid,
-};
-use std::error::Error;
+use rocket_contrib::{json::Json, uuid::Uuid as rocketUuid};
 
 #[get("/clients/<id>", format = "application/json")]
 pub fn get_client(_policy: Bearer, id: rocketUuid) -> WebResult {
@@ -24,7 +20,7 @@ pub fn get_client(_policy: Bearer, id: rocketUuid) -> WebResult {
         .map_err(|e| match e {
             _ => err!(Status::BadRequest, "no client found"),
         })?
-        .client;
+        .inner;
 
     Ok(json!({ "model": client }))
 }
@@ -52,7 +48,7 @@ pub fn create_client(_policy: Bearer, payload: Json<CreateClientPayload>) -> Web
         .map_err(|e| match e {
             _ => err!(Status::InternalServerError, "unable to create client"),
         })?
-        .client;
+        .inner;
 
     Ok(json!({ "model": client }))
 }

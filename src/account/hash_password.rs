@@ -22,6 +22,6 @@ impl Account {
             &mut hash_result,
         );
 
-        self.password = Some(data_encoding::HEXUPPER.encode(&hash_result));
+        self.password = Some(HEXUPPER.encode(&hash_result));
     }
 }

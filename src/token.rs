@@ -1,6 +1,6 @@
 use crate::{
     client::ClientController,
-    granter::{grant_token, Granter, Password, Refresh},
+    granter::{grant_token, Password, Refresh},
     result::WebResult,
     schema,
     validate::Validator,
@@ -12,7 +12,6 @@ use jsonwebtoken;
 use postgres_resource::ResourceController;
 use rocket::{http::Status, post, response::status::Custom};
 use rocket_contrib::json::{Json, JsonValue};
-use std::error::Error;
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenPayload {
@@ -60,7 +59,7 @@ pub fn get_token(payload: Json<TokenPayload>) -> WebResult {
             schema::clients::uuid.eq(payload.client_id.unwrap()),
         ))
         .map_err(|_| err!(Status::BadRequest, "invalid client"))?
-        .client;
+        .inner;
 
     match &payload.grant_type.unwrap()[..] {
         "password" => {
@@ -69,7 +68,7 @@ pub fn get_token(payload: Json<TokenPayload>) -> WebResult {
         }
         "refresh_token" => {
             let refresh_id = payload.refresh_id.unwrap();
-            grant_token(Refresh::new(client.uuid, refresh_id))
+            grant_token(Refresh::new(refresh_id))
         }
         _ => Err(err!(Status::BadRequest, "invalid grant_type")),
     }

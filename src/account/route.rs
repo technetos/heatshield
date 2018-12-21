@@ -1,5 +1,5 @@
 use crate::{
-    account::{change_password::ChangePasswordPayload, Account, AccountController, AccountWithId},
+    account::{change_password::ChangePasswordPayload, Account, AccountController},
     policy::Bearer,
     result::WebResult,
     schema,
@@ -10,11 +10,7 @@ use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use postgres_resource::ResourceController;
 use rocket::{get, http::Status, post, put, response::status::Custom};
-use rocket_contrib::{
-    json::{Json, JsonValue},
-    uuid::Uuid as rocketUuid,
-};
-use std::error::Error;
+use rocket_contrib::{json::Json, uuid::Uuid as rocketUuid};
 
 #[get("/accounts/<id>", format = "application/json")]
 pub fn get_account(_policy: Bearer, id: rocketUuid) -> WebResult {
@@ -23,7 +19,7 @@ pub fn get_account(_policy: Bearer, id: rocketUuid) -> WebResult {
         .map_err(|e| match e {
             _ => err!(Status::Unauthorized, "account not found"),
         })?
-        .account;
+        .inner;
 
     Ok(json!({ "model": account }))
 }
@@ -41,7 +37,7 @@ pub fn create_account(_policy: Bearer, account: Json<Account>) -> WebResult {
         .map_err(|e| match e {
             _ => err!(Status::InternalServerError, "unable to create account"),
         })?
-        .account;
+        .inner;
 
     Ok(json!({ "model": account }))
 }
@@ -56,7 +52,7 @@ pub fn update_account(_policy: Bearer, id: rocketUuid, payload: Json<Account>) -
         .map_err(|e| match e {
             _ => err!(Status::InternalServerError, "unable to update account"),
         })?
-        .account;
+        .inner;
 
     Ok(json!({ "model": account }))
 }

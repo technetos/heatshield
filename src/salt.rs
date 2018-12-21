@@ -2,11 +2,11 @@ use crate::schema::salts;
 
 use diesel::{
     self, delete, insert_into, prelude::*, result::Error, update, Associations, FromSqlRow,
-    Identifiable, Insertable, Queryable,
+    Identifiable, Insertable,
 };
 use postgres_resource::*;
 
-#[resource(schema = salts, table = "salts")]
+#[resource]
 struct Salt {
     salt: String,
 }

@@ -14,7 +14,6 @@ pub mod result {
 
 pub const BASEPATH: &'static str = "/heatshield/v1";
 
-#[macro_use]
 extern crate postgres_resource;
 
 pub mod account;

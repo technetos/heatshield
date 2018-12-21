@@ -3,7 +3,6 @@ use crate::{
     result::WebResult, schema, user_token::UserTokenController,
 };
 
-use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use postgres_resource::ResourceController;
 use rocket::{http::Status, post, response::status::Custom};
@@ -16,13 +15,13 @@ pub fn logout(policy: Bearer) -> WebResult {
 
     UserTokenController
         .delete(Box::new(
-            schema::user_tokens::account_id.eq(policy.0.user_token.account_id),
+            schema::user_tokens::account_id.eq(policy.0.inner.account_id),
         ))
         .map_err(|_| err!(Status::InternalServerError, "error logging out user"))?;
 
     RefreshTokenController
         .delete(Box::new(
-            schema::refresh_tokens::uuid.eq(policy.0.user_token.refresh_id.unwrap()),
+            schema::refresh_tokens::uuid.eq(policy.0.inner.refresh_id.unwrap()),
         ))
         .map_err(|_| err!(Status::InternalServerError, "error logging out user"))?;
 

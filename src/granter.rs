@@ -2,19 +2,18 @@ use crate::{
     access_token::{AccessToken, AccessTokenController},
     account::AccountController,
     jwt::JWT,
-    refresh_token::{RefreshToken, RefreshTokenController, RefreshTokenWithId},
+    refresh_token::{RefreshToken, RefreshTokenController},
     result::WebResult,
-    schema::{access_tokens, accounts, refresh_tokens, user_tokens},
+    schema::{accounts, user_tokens},
     token::LoginPayload,
-    user_token::{UserToken, UserTokenController, UserTokenWithId},
+    user_token::{UserToken, UserTokenController},
 };
 
 use compat_uuid::Uuid;
 use diesel::ExpressionMethods;
 use jsonwebtoken;
 use postgres_resource::ResourceController;
-use rocket::{http::Status, response::status::Custom, Response};
-use rocket_contrib::{json::JsonValue, uuid::Uuid as rocketUuid};
+use rocket::{http::Status, response::status::Custom};
 
 pub trait Granter {
     fn grant_token(self) -> WebResult;
@@ -45,8 +44,8 @@ impl<'a> Granter for Password {
     fn grant_token(self) -> WebResult {
         let account = AccountController
             .get_one(Box::new(accounts::username.eq(self.credentials.username)))
-            .map_err(|e| err!(Status::Unauthorized, "invalid credentials"))?
-            .account;
+            .map_err(|_| err!(Status::Unauthorized, "invalid credentials"))?
+            .inner;
 
         if !account.verify_password(&self.credentials.password) {
             return Err(err!(Status::Unauthorized, "invalid credentials"));
@@ -59,7 +58,7 @@ impl<'a> Granter for Password {
             .map_err(|e| match e {
                 _ => err!(Status::InternalServerError, "error creating refresh token"),
             })?
-            .refresh_token;
+            .inner;
 
         let user_token = UserTokenController
             .create(&UserToken {
@@ -85,24 +84,20 @@ impl<'a> Granter for Password {
 
         Ok(json!({
             "token_type": "Bearer",
-            "access_token": &access_token.access_token.jwt,
-            "expires_in": &access_token.access_token.expires_in,
-            "refresh_token": &user_token.user_token.refresh_id.unwrap(),
+            "access_token": &access_token.inner.jwt,
+            "expires_in": &access_token.inner.expires_in,
+            "refresh_token": &user_token.inner.refresh_id.unwrap(),
         }))
     }
 }
 
 pub struct Refresh {
-    client_id: Uuid,
     refresh_id: Uuid,
 }
 
 impl Refresh {
-    pub fn new(client_id: Uuid, refresh_id: Uuid) -> Self {
-        Self {
-            client_id,
-            refresh_id,
-        }
+    pub fn new(refresh_id: Uuid) -> Self {
+        Self { refresh_id }
     }
 }
 
@@ -115,13 +110,13 @@ impl Granter for Refresh {
         let new_refresh_token = RefreshTokenController
             .create(&RefreshToken { uuid: Uuid::new() })
             .map_err(|_| err!(Status::InternalServerError, "error generating refresh_id"))?
-            .refresh_token;
+            .inner;
 
-        existing_user_token.user_token.refresh_id = Some(new_refresh_token.uuid);
+        existing_user_token.inner.refresh_id = Some(new_refresh_token.uuid);
 
         let updated_user_token = UserTokenController
             .update(
-                &existing_user_token.user_token,
+                &existing_user_token.inner,
                 Box::new(user_tokens::id.eq(existing_user_token.id)),
             )
             .map_err(|_| err!(Status::InternalServerError, "error updating user token"))?;
@@ -139,9 +134,9 @@ impl Granter for Refresh {
 
         Ok(json!({
             "token_type": "Bearer",
-            "access_token": &access_token.access_token.jwt,
-            "expires_in": &access_token.access_token.expires_in,
-            "refresh_token": &updated_user_token.user_token.refresh_id.as_ref().unwrap(),
+            "access_token": &access_token.inner.jwt,
+            "expires_in": &access_token.inner.expires_in,
+            "refresh_token": &updated_user_token.inner.refresh_id.as_ref().unwrap(),
         }))
     }
 }
